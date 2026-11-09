@@ -14,10 +14,13 @@ namespace Japensou.NuclearOption.VortexConventional
         internal const float Span = 2f * (NativeHalfSpan + TipExtension);
         internal static readonly string[] WingPaths =
         {
-            "liftFan/wingRoot_L", "liftFan/wingRoot_R", "wing1a_L", "wing1a_R",
-            "engine/wing1b_L", "engine/wing1b_R"
+            "liftFan/wingRoot_L",
+            "liftFan/wingRoot_R",
+            "wing1a_L",
+            "wing1a_R",
+            "engine/wing1b_L",
+            "engine/wing1b_R"
         };
-
         internal static Vector3 Widen(Vector3 point)
         {
             float t = Mathf.InverseLerp(RootStation, NativeHalfSpan, Mathf.Abs(point.x));
@@ -44,10 +47,18 @@ namespace Japensou.NuclearOption.VortexConventional
                     throw new InvalidOperationException("FS-20C wing layout changed: " + path);
                 Deform(root, branch, Widen, true);
             }
-            foreach (string side in new[] { "L", "R" })
+
+            foreach (string side in new[]
+            {
+                "L",
+                "R"
+            }
+
+            )
             {
                 var fin = root.Find("engine/tail_" + side + "/vstab_" + side);
-                if (fin == null) throw new InvalidOperationException("FS-20C fin missing: " + side);
+                if (fin == null)
+                    throw new InvalidOperationException("FS-20C fin missing: " + side);
                 // The rudder and its hinges keep the original aft edge.
                 Deform(root, fin, ExtendFin, false);
             }
@@ -65,8 +76,12 @@ namespace Japensou.NuclearOption.VortexConventional
 
         internal static Mesh ReadableCopy(Mesh source)
         {
-            if (source.isReadable) return UnityEngine.Object.Instantiate(source);
-            var copy = new Mesh { name = source.name + "_readable" };
+            if (source.isReadable)
+                return UnityEngine.Object.Instantiate(source);
+            var copy = new Mesh
+            {
+                name = source.name + "_readable"
+            };
             copy.SetVertexBufferParams(source.vertexCount, source.GetVertexAttributes());
             for (int stream = 0; stream < source.vertexBufferCount; stream++)
             {
@@ -77,6 +92,7 @@ namespace Japensou.NuclearOption.VortexConventional
                     copy.SetVertexBufferData(data, 0, 0, data.Length, stream);
                 }
             }
+
             using (var buffer = source.GetIndexBuffer())
             {
                 copy.SetIndexBufferParams(buffer.count, source.indexFormat);
@@ -93,6 +109,7 @@ namespace Japensou.NuclearOption.VortexConventional
                     copy.SetIndexBufferData(indices, 0, 0, indices.Length);
                 }
             }
+
             copy.subMeshCount = source.subMeshCount;
             for (int i = 0; i < source.subMeshCount; i++)
                 copy.SetSubMesh(i, source.GetSubMesh(i));
@@ -102,8 +119,7 @@ namespace Japensou.NuclearOption.VortexConventional
 
         private static void Deform(Transform root, Transform branch, Func<Vector3, Vector3> map, bool wing)
         {
-            var transforms = branch.GetComponentsInChildren<Transform>(true)
-                .Where(t => wing || !HasAncestorPrefix(t, branch, "rudder_")).ToArray();
+            var transforms = branch.GetComponentsInChildren<Transform>(true).Where(t => wing || !HasAncestorPrefix(t, branch, "rudder_")).ToArray();
             var originals = transforms.ToDictionary(t => t, t => root.worldToLocalMatrix * t.localToWorldMatrix);
             var states = new List<MeshState>();
             var areaRatios = new Dictionary<AeroPart, float>();
@@ -119,20 +135,20 @@ namespace Japensou.NuclearOption.VortexConventional
                     Vector3 displacement = map(native) - native;
                     localMap = p => p + displacement;
                 }
+
                 var filter = transform.GetComponent<MeshFilter>();
                 var collider = transform.GetComponent<MeshCollider>();
                 if (filter != null && filter.sharedMesh != null)
                 {
                     Mesh readable = ReadableCopy(filter.sharedMesh);
-                    states.Add(new MeshState { Transform = transform, Filter = filter,
-                        Source = readable, LocalToAircraft = matrix, Map = localMap });
+                    states.Add(new MeshState { Transform = transform, Filter = filter, Source = readable, LocalToAircraft = matrix, Map = localMap });
                     var part = transform.GetComponent<AeroPart>();
                     if (part != null)
                         areaRatios[part] = ProjectedAreaRatio(readable, matrix, localMap);
                 }
+
                 if (collider != null && collider.sharedMesh != null)
-                    states.Add(new MeshState { Transform = transform, Collider = collider,
-                        Source = ReadableCopy(collider.sharedMesh), LocalToAircraft = matrix, Map = localMap });
+                    states.Add(new MeshState { Transform = transform, Collider = collider, Source = ReadableCopy(collider.sharedMesh), LocalToAircraft = matrix, Map = localMap });
             }
 
             if (wing)
@@ -149,6 +165,7 @@ namespace Japensou.NuclearOption.VortexConventional
                         Vector3 pylonNative = originals[pylon].MultiplyPoint3x4(Vector3.zero);
                         position = native + map(pylonNative) - pylonNative;
                     }
+
                     transform.position = root.TransformPoint(position);
                 }
             }
@@ -160,14 +177,16 @@ namespace Japensou.NuclearOption.VortexConventional
                 Vector3[] vertices = mesh.vertices;
                 Matrix4x4 aircraftToLocal = state.Transform.worldToLocalMatrix * root.localToWorldMatrix;
                 for (int i = 0; i < vertices.Length; i++)
-                    vertices[i] = aircraftToLocal.MultiplyPoint3x4(state.Map(
-                        state.LocalToAircraft.MultiplyPoint3x4(vertices[i])));
+                    vertices[i] = aircraftToLocal.MultiplyPoint3x4(state.Map(state.LocalToAircraft.MultiplyPoint3x4(vertices[i])));
                 mesh.vertices = vertices;
                 mesh.RecalculateBounds();
                 mesh.RecalculateNormals();
-                if (mesh.uv.Length == vertices.Length) mesh.RecalculateTangents();
-                if (state.Filter != null) state.Filter.sharedMesh = mesh;
-                else state.Collider.sharedMesh = mesh;
+                if (mesh.uv.Length == vertices.Length)
+                    mesh.RecalculateTangents();
+                if (state.Filter != null)
+                    state.Filter.sharedMesh = mesh;
+                else
+                    state.Collider.sharedMesh = mesh;
             }
 
             // Area changes follow the new planform. Native flap/slat physics
@@ -177,7 +196,8 @@ namespace Japensou.NuclearOption.VortexConventional
                 pair.Key.SetWingArea(pair.Key.GetWingArea() * pair.Value);
                 pair.Key.dragArea *= pair.Value;
                 var device = pair.Key.GetComponent<HighLiftDevice>();
-                if (device != null) Fs20FlightController.ScaleHighLiftArea(device, pair.Value);
+                if (device != null)
+                    Fs20FlightController.ScaleHighLiftArea(device, pair.Value);
             }
         }
 
@@ -189,7 +209,8 @@ namespace Japensou.NuclearOption.VortexConventional
         private static Transform FindAncestorPrefix(Transform node, Transform root, string prefix)
         {
             for (var current = node; current != null; current = current == root ? null : current.parent)
-                if (current.name.StartsWith(prefix, StringComparison.Ordinal)) return current;
+                if (current.name.StartsWith(prefix, StringComparison.Ordinal))
+                    return current;
             return null;
         }
 
@@ -207,6 +228,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 before += Mathf.Abs(Vector3.Cross(b - a, c - a).y);
                 after += Mathf.Abs(Vector3.Cross(map(b) - map(a), map(c) - map(a)).y);
             }
+
             return before > 0.001f ? Mathf.Clamp(after / before, 0.5f, 3f) : 1f;
         }
     }

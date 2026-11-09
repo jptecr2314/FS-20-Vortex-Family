@@ -18,8 +18,7 @@ namespace Japensou.NuclearOption.VortexConventional
         private const string VariantKey = "JP_FS20_CTOL";
         private const int PrefabHash = 0x6A20C701;
         private const string Label = "FS-20C Vortex";
-        // The native prefab budgets mass for assemblies, not VTOL internals.
-        // Keep the fan bay structure and credit no savings for the retained exhaust.
+        // Budget removed hardware separately from retained structures.
         private const float LiftFanHardwareMass = 300f;
         private const float RollPostHardwareMass = 25f;
         private const float RemovedVtolMass = LiftFanHardwareMass + 2f * RollPostHardwareMass;
@@ -35,8 +34,7 @@ namespace Japensou.NuclearOption.VortexConventional
         private void Awake()
         {
             instance = this;
-            flapMode = Config.Bind("FS-20C", "Flap mode", Fs20FlapMode.Auto,
-                "Auto schedules takeoff, approach and combat flaps. Other modes override the schedule; high-speed retraction stays active.");
+            flapMode = Config.Bind("FS-20C", "Flap mode", Fs20FlapMode.Auto, "Auto schedules takeoff, approach and combat flaps. Other modes override the schedule; high-speed retraction stays active.");
             var runner = AccessTools.TypeByName("Blueprinter.PatchRunner");
             var apply = runner == null ? null : AccessTools.Method(runner, "ApplyAllOps");
             var hangarAwake = AccessTools.Method(typeof(Hangar), "Awake");
@@ -47,10 +45,7 @@ namespace Japensou.NuclearOption.VortexConventional
             }
 
             harmony = new Harmony(PluginId);
-            harmony.Patch(apply, postfix: new HarmonyMethod(typeof(VortexConventionalPlugin), nameof(AfterBlueprinter))
-            {
-                priority = Priority.Last
-            });
+            harmony.Patch(apply, postfix: new HarmonyMethod(typeof(VortexConventionalPlugin), nameof(AfterBlueprinter)) { priority = Priority.Last });
             harmony.Patch(hangarAwake, postfix: new HarmonyMethod(typeof(VortexConventionalPlugin), nameof(AfterHangarAwake)));
             harmony.PatchAll(typeof(Fs20FlightController.FlightSample));
             harmony.PatchAll(typeof(Fs20FlightController.PrepareEnvelope));
@@ -69,40 +64,49 @@ namespace Japensou.NuclearOption.VortexConventional
 
         private static void AfterBlueprinter(Encyclopedia __0)
         {
-            try { instance.Register(__0); }
-            catch (Exception error) { instance.Logger.LogError("Vortex CTOL registration failed: " + error); }
-            try { instance.RegisterA(__0); }
-            catch (Exception error) { instance.Logger.LogError("FS-20A registration failed: " + error); }
+            try
+            {
+                instance.Register(__0);
+            }
+            catch (Exception error)
+            {
+                instance.Logger.LogError("Vortex CTOL registration failed: " + error);
+            }
+
+            try
+            {
+                instance.RegisterA(__0);
+            }
+            catch (Exception error)
+            {
+                instance.Logger.LogError("FS-20A registration failed: " + error);
+            }
         }
 
         private void RegisterA(Encyclopedia encyclopedia)
         {
-            if(variantA!=null || encyclopedia==null || Encyclopedia.Lookup==null || encyclopedia.IndexLookup==null)return;
-            if(original==null)original=encyclopedia.aircraft.FirstOrDefault(d=>d!=null && d.jsonKey==StockKey);
-            if(original==null)throw new InvalidOperationException("FS-20A donor unavailable.");
-            variantA=Fs20AirframeA.Register(encyclopedia,original);
-            TryInstallVapor(variantA,false);
-            foreach(var hangar in Resources.FindObjectsOfTypeAll<Hangar>())AddToHangar(hangar);
-            Logger.LogInfo($"Registered FS-20A Vortex ({Fs20AirframeA.Key}), original wings, native thrust, extra internal fuel and A-specific 11 G FBW, " +
-                $"nominal empty {variantA.aircraftInfo.emptyWeight:F0} kg, prefab part mass {variantA.mass:F0} kg, " +
-                $"internal fuel {variantA.unitPrefab.GetComponentsInChildren<FuelTank>(true).Sum(t=>t.GetCapacity()):F0} kg; runway configuration awaits flight testing.");
+            if (variantA != null || encyclopedia == null || Encyclopedia.Lookup == null || encyclopedia.IndexLookup == null)
+                return;
+            if (original == null)
+                original = encyclopedia.aircraft.FirstOrDefault(d => d != null && d.jsonKey == StockKey);
+            if (original == null)
+                throw new InvalidOperationException("FS-20A donor unavailable.");
+            variantA = Fs20AirframeA.Register(encyclopedia, original);
+            TryInstallVapor(variantA, false);
+            foreach (var hangar in Resources.FindObjectsOfTypeAll<Hangar>())
+                AddToHangar(hangar);
+            Logger.LogInfo($"Registered FS-20A Vortex ({Fs20AirframeA.Key}), original wings, native thrust, extra internal fuel and A-specific 11 G FBW, " + $"nominal empty {variantA.aircraftInfo.emptyWeight:F0} kg, prefab part mass {variantA.mass:F0} kg, " + $"internal fuel {variantA.unitPrefab.GetComponentsInChildren<FuelTank>(true).Sum(t => t.GetCapacity()):F0} kg; runway configuration awaits flight testing.");
         }
 
         private void Register(Encyclopedia encyclopedia)
         {
-            if (variant != null || encyclopedia == null || Encyclopedia.Lookup == null ||
-                encyclopedia.IndexLookup == null || Encyclopedia.Lookup.ContainsKey(VariantKey)) return;
-
-            original = encyclopedia.aircraft.FirstOrDefault(definition =>
-                definition != null && definition.jsonKey == StockKey);
+            if (variant != null || encyclopedia == null || Encyclopedia.Lookup == null || encyclopedia.IndexLookup == null || Encyclopedia.Lookup.ContainsKey(VariantKey))
+                return;
+            original = encyclopedia.aircraft.FirstOrDefault(definition => definition != null && definition.jsonKey == StockKey);
             if (original == null || original.unitPrefab == null || original.aircraftParameters == null)
                 throw new InvalidOperationException("Native FS-20 definition is unavailable.");
-            if (encyclopedia.IndexLookup.OfType<UnitDefinition>().Any(definition =>
-                definition != null && definition.unitPrefab != null &&
-                definition.unitPrefab.TryGetComponent<NetworkIdentity>(out var identity) &&
-                identity.PrefabHash == PrefabHash))
+            if (encyclopedia.IndexLookup.OfType<UnitDefinition>().Any(definition => definition != null && definition.unitPrefab != null && definition.unitPrefab.TryGetComponent<NetworkIdentity>(out var identity) && identity.PrefabHash == PrefabHash))
                 throw new InvalidOperationException("Vortex CTOL prefab hash is already in use.");
-
             GameObject holder = null;
             AircraftDefinition definitionCopy = null;
             AircraftParameters parameters = null;
@@ -118,13 +122,11 @@ namespace Japensou.NuclearOption.VortexConventional
                 var swivel = prefab.GetComponent<SwivelDuctSystem>();
                 if (aircraft == null || network == null || swivel == null)
                     throw new InvalidOperationException("Native FS-20 prefab layout changed.");
-
                 Fs20Geometry.Apply(prefab.transform);
                 RemoveVtolHardware(prefab.transform, swivel);
                 ConfigureMassAndStructure(prefab.transform);
                 Fs20Tuning.Configure(prefab.transform);
                 prefab.AddComponent<Fs20FlightController>();
-
                 parameters = Instantiate(original.aircraftParameters);
                 parameters.aircraftName = Label;
                 parameters.verticalLanding = false;
@@ -136,13 +138,11 @@ namespace Japensou.NuclearOption.VortexConventional
                 parameters.shortLandingSpeed = 72f;
                 parameters.cornerSpeed = 140f;
                 parameters.DefaultFuelLevel = 0.35f;
-
                 definitionCopy = Instantiate(original);
                 definitionCopy.name = definitionCopy.jsonKey = VariantKey;
                 definitionCopy.unitName = Label;
                 definitionCopy.code = "FS-20C";
-                definitionCopy.description = "Composite-wing Vortex with a lighter fixed engine installation, 110/165 kN thrust, " +
-                    "integrated flaperons, adaptive 11 G flight assist and maneuvering thrust vectoring. Conventional landing; experimental short-deck takeoff configuration.";
+                definitionCopy.description = "Composite-wing Vortex with a lighter fixed engine installation, 110/165 kN thrust, " + "integrated flaperons, adaptive 11 G flight assist and maneuvering thrust vectoring. Conventional landing; experimental short-deck takeoff configuration.";
                 definitionCopy.width = Fs20Geometry.Span;
                 definitionCopy.aircraftParameters = parameters;
                 var stockInfo = original.aircraftInfo;
@@ -159,7 +159,6 @@ namespace Japensou.NuclearOption.VortexConventional
                 network.PrefabHash = PrefabHash;
                 prefab.SetActive(true);
                 definitionCopy.mass = prefab.GetComponentsInChildren<UnitPart>(true).Sum(part => part.GetMass());
-
                 encyclopedia.aircraft.Add(definitionCopy);
                 Encyclopedia.Lookup.Add(VariantKey, definitionCopy);
                 ((INetworkDefinition)definitionCopy).LookupIndex = encyclopedia.IndexLookup.Count;
@@ -175,34 +174,38 @@ namespace Japensou.NuclearOption.VortexConventional
                     encyclopedia.IndexLookup.Remove(definitionCopy);
                     Destroy(definitionCopy);
                 }
-                if (holder != null) Destroy(holder);
-                if (parameters != null) Destroy(parameters);
+
+                if (holder != null)
+                    Destroy(holder);
+                if (parameters != null)
+                    Destroy(parameters);
                 throw;
             }
 
             variant = definitionCopy;
-            TryInstallVapor(variant,true);
+            TryInstallVapor(variant, true);
             Fs20TailHook.Add(encyclopedia, variant);
-            foreach (var hangar in Resources.FindObjectsOfTypeAll<Hangar>()) AddToHangar(hangar);
-            Logger.LogInfo($"Registered {Label} ({VariantKey}), span {variant.width:F2} m, " +
-                $"110/165 kN, nominal empty {variant.aircraftInfo.emptyWeight:F0} kg, " +
-                $"prefab part mass {variant.mass:F0} kg; short-deck performance requires flight validation.");
+            foreach (var hangar in Resources.FindObjectsOfTypeAll<Hangar>())
+                AddToHangar(hangar);
+            Logger.LogInfo($"Registered {Label} ({VariantKey}), span {variant.width:F2} m, " + $"110/165 kN, nominal empty {variant.aircraftInfo.emptyWeight:F0} kg, " + $"prefab part mass {variant.mass:F0} kg; short-deck performance requires flight validation.");
         }
 
-        private void TryInstallVapor(AircraftDefinition definition,bool extendedWing)
+        private void TryInstallVapor(AircraftDefinition definition, bool extendedWing)
         {
             try
             {
-                Fs20ManeuverVapor.Install(definition.unitPrefab.transform,extendedWing);
-                Logger.LogInfo(definition.code+" maneuver vapor template configured: 4 layers, native material, structural owners bound.");
+                Fs20ManeuverVapor.Install(definition.unitPrefab.transform, extendedWing);
+                Logger.LogInfo(definition.code + " maneuver vapor template configured: 4 layers, native material, structural owners bound.");
             }
-            catch(Exception error){Logger.LogError(definition.code+" wing vapor setup failed: "+error);}
+            catch (Exception error)
+            {
+                Logger.LogError(definition.code + " wing vapor setup failed: " + error);
+            }
         }
 
         internal static void RemoveVtolHardware(Transform root, SwivelDuctSystem swivel)
         {
-            // These mounts are exclusive to the removed system. The fixed bay
-            // skin and main nozzle's thrust/effects hierarchy remain in place.
+            // Remove VTOL-only mounts; retain the bay skin and main nozzle.
             DestroyImmediate(swivel);
             RemoveEquipment(root, "liftFan", LiftFanHardwareMass, "liftFan_blades", "liftFan_thrustTransform");
             RemoveEquipment(root, "wing1a_L/wing2a_L", RollPostHardwareMass, "rollPost_L");
@@ -214,10 +217,10 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             private static bool Prefix(NozzleGauge __instance)
             {
-                if (__instance.GetComponent<Fs20HiddenGauge>() != null) return false;
-                if (!GameManager.GetLocalAircraft(out var local) ||
-                    local == null || (local.GetComponent<Fs20FlightController>() == null &&
-                        local.GetComponent<Fs20ConventionalAirframe>() == null)) return true;
+                if (__instance.GetComponent<Fs20HiddenGauge>() != null)
+                    return false;
+                if (!GameManager.GetLocalAircraft(out var local) || local == null || (local.GetComponent<Fs20FlightController>() == null && local.GetComponent<Fs20ConventionalAirframe>() == null))
+                    return true;
                 // HUDAppManager retains serialized references to these widgets.
                 // Hide the VTOL gauge while preserving the manager's app list.
                 __instance.gameObject.AddComponent<Fs20HiddenGauge>();
@@ -232,7 +235,6 @@ namespace Japensou.NuclearOption.VortexConventional
             var part = mount == null ? null : mount.GetComponent<AeroPart>();
             if (part == null || part.mass <= mass)
                 throw new InvalidOperationException("Invalid Vortex VTOL assembly mass: " + path);
-
             foreach (var name in hardware)
             {
                 var component = mount.Find(name);
@@ -241,30 +243,32 @@ namespace Japensou.NuclearOption.VortexConventional
                 DestroyImmediate(component.gameObject);
             }
 
-            // Set the part before Awake so both the articulated physics and
-            // the definition's cached mass start from the same values.
+            // Set part mass before Awake and definition mass caching.
             part.mass -= mass;
         }
 
         private static void ConfigureMassAndStructure(Transform root)
         {
-            // Fictional engineering budget approved for the C variant.
-            // 350 kg VTOL hardware + 400 kg engine/nozzle + 450 kg composite wings.
+            // C mass budget: 350 kg VTOL + 400 kg engine/nozzle + 450 kg wings.
             root.Find("engine").GetComponent<AeroPart>().mass -= 200f;
             root.Find("engine/nozzle").GetComponent<AeroPart>().mass -= 200f;
-            var wings = Fs20Geometry.WingPaths.SelectMany(path =>
-                root.Find(path).GetComponentsInChildren<AeroPart>(true)).ToArray();
+            var wings = Fs20Geometry.WingPaths.SelectMany(path => root.Find(path).GetComponentsInChildren<AeroPart>(true)).ToArray();
             float wingMass = wings.Sum(part => part.mass);
             float ratio = (wingMass - 450f) / wingMass;
             var jointsField = Fs20Tuning.Field(typeof(AeroPart), "joints");
             foreach (var part in wings)
             {
                 part.mass *= ratio;
-                // Preserve finite breakaway joints with a span allowance for
-                // the larger moment arm. No landing-gear assembly is edited.
+                // Allow for the longer moment arm while retaining breakaway joints.
                 foreach (var joint in (Array)jointsField.GetValue(part))
                 {
-                    foreach (string name in new[] { "breakForce", "breakTorque" })
+                    foreach (string name in new[]
+                    {
+                        "breakForce",
+                        "breakTorque"
+                    }
+
+                    )
                     {
                         var field = Fs20Tuning.Field(joint.GetType(), name);
                         field.SetValue(joint, (float)field.GetValue(joint) * 1.25f);
@@ -280,16 +284,22 @@ namespace Japensou.NuclearOption.VortexConventional
 
         private void AddToHangar(Hangar hangar)
         {
-            if (hangar == null || original == null) return;
+            if (hangar == null || original == null)
+                return;
             var available = HangarTypes.GetValue(hangar) as AircraftDefinition[];
-            if (available == null || !available.Contains(original)) return;
-            var updated=available.ToList();
-            if(variant!=null && !updated.Contains(variant))updated.Add(variant);
-            if(variantA!=null && !updated.Contains(variantA) && !(hangar.attachedUnit is Ship) &&
-                hangar.GetComponentInParent<Ship>()==null)updated.Add(variantA);
-            if(updated.Count!=available.Length)HangarTypes.SetValue(hangar,updated.ToArray());
+            if (available == null || !available.Contains(original))
+                return;
+            var updated = available.ToList();
+            if (variant != null && !updated.Contains(variant))
+                updated.Add(variant);
+            if (variantA != null && !updated.Contains(variantA) && !(hangar.attachedUnit is Ship) && hangar.GetComponentInParent<Ship>() == null)
+                updated.Add(variantA);
+            if (updated.Count != available.Length)
+                HangarTypes.SetValue(hangar, updated.ToArray());
         }
     }
 
-    public sealed class Fs20HiddenGauge : MonoBehaviour { }
+    public sealed class Fs20HiddenGauge : MonoBehaviour
+    {
+    }
 }

@@ -16,7 +16,6 @@ namespace Japensou.NuclearOption.VortexConventional
         internal const float TankCenterY = -0.21f;
         internal const float TankCenterZ = 2.316f;
         internal const float ModeledFuelDensity = 800f;
-        internal static float TankVolume => (float)Math.PI *
-            (TankOuterRadius*TankOuterRadius-TankInnerRadius*TankInnerRadius)*TankHeight*TankSectorDegrees/360f;
+        internal static float TankVolume => (float)Math.PI * (TankOuterRadius * TankOuterRadius - TankInnerRadius * TankInnerRadius) * TankHeight * TankSectorDegrees / 360f;
     }
 }
