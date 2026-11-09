@@ -28,3 +28,8 @@ $exe=Join-Path $out 'landing.exe'
 if($LASTEXITCODE -ne 0){throw 'Test compilation failed'}
 & $exe
 if($LASTEXITCODE -ne 0){throw 'Offline test failed'}
+$exe=Join-Path $out 'pool.exe'
+& $csc /nologo /target:exe "/out:$exe" (Join-Path $PSScriptRoot 'src/AirframePool.cs') (Join-Path $PSScriptRoot 'tests/test_shared_airframes.cs')
+if($LASTEXITCODE -ne 0){throw 'Test compilation failed'}
+& $exe
+if($LASTEXITCODE -ne 0){throw 'Offline test failed'}

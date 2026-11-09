@@ -216,7 +216,7 @@ namespace Japensou.NuclearOption.VortexConventional
             bool selectedFamily = models.Any(m => selected == m.definition);
             family.Setup(models.Any(m => player.OwnsAirframe(m.definition, true)), models.Any(Available));
             family.SetActive(selectedFamily);
-            int owned = models.Sum(m => player.OwnedAirframeTypeCount(m.definition, true));
+            int owned = player.OwnedAirframeTypeCount(family.definition, true);
             ((Text)OwnedValue.GetValue(family)).text = owned > 0 ? owned.ToString() : "";
             if (changed && !selectedFamily && expanded)
                 Close();

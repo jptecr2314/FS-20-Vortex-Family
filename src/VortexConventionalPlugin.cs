@@ -4,13 +4,15 @@ using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using Japensou.NuclearOption.SharedAirframes;
 using Mirage;
 using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.3.11")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.4.0")]
     [BepInDependency("com.nikkorap.blueprinter")]
+    [BepInIncompatibility("br.japensou.nuclearoption.sharedairframes")]
     public sealed class VortexConventionalPlugin : BaseUnityPlugin
     {
         private const string PluginId = "br.japensou.nuclearoption.vortexctol";
@@ -29,11 +31,15 @@ namespace Japensou.NuclearOption.VortexConventional
         private AircraftDefinition variantA;
         private Harmony harmony;
         private ConfigEntry<Fs20FlapMode> flapMode;
+        private ConfigEntry<bool> sharedStock;
+        private bool refreshInventory;
         internal static Fs20FlapMode FlapMode => instance == null ? Fs20FlapMode.Auto : instance.flapMode.Value;
 
         private void Awake()
         {
             instance = this;
+            sharedStock = SharedAirframeStock.Configure(Config);
+            sharedStock.SettingChanged += OnStockSettingChanged;
             flapMode = Config.Bind("FS-20C", "Flap mode", Fs20FlapMode.Auto, "Auto schedules takeoff, approach and combat flaps. Other modes override the schedule; high-speed retraction stays active.");
             var runner = AccessTools.TypeByName("Blueprinter.PatchRunner");
             var apply = runner == null ? null : AccessTools.Method(runner, "ApplyAllOps");
@@ -55,10 +61,29 @@ namespace Japensou.NuclearOption.VortexConventional
             harmony.PatchAll(typeof(Fs20FamilyMenu.RefreshPatch));
             harmony.PatchAll(typeof(Fs20HookFairing.BayInterlock));
             harmony.PatchAll(typeof(Fs20HookFairing.DepartureInterlock));
+            SharedAirframeStock.Enable(Logger);
+        }
+
+        private void OnStockSettingChanged(object sender, EventArgs args)
+        {
+            refreshInventory = true;
+        }
+
+        private void Update()
+        {
+            if (!refreshInventory)
+                return;
+            refreshInventory = false;
+            foreach (var menu in Resources.FindObjectsOfTypeAll<AircraftInventoryMenu>())
+                if (menu.isActiveAndEnabled)
+                    menu.Refresh();
         }
 
         private void OnDestroy()
         {
+            if (sharedStock != null)
+                sharedStock.SettingChanged -= OnStockSettingChanged;
+            SharedAirframeStock.Disable();
             harmony?.UnpatchSelf();
         }
 

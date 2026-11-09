@@ -30,6 +30,13 @@ script does not launch the game, install mods or send any request to a registry.
 
 ## Shared airframes
 
+- [ ] Only VortexConventional.dll is installed; legacy Fs20SharedAirframes.dll
+      is removed. One FS-20 plugin appears in Configuration Manager.
+- [ ] F1 > FS-20 Vortex Family > Inventory > Shared airframe stock toggles
+      pooled/separate counters and persists after restart. A/B/C stay selectable.
+- [ ] Switch modes with uneven stock/owned entries; no cells are created,
+      converted or redistributed and separate balances remain intact.
+
 - [ ] Faction starts with 48 B: A/B/C display the same 48; requisition one ->47.
 - [ ] Owned B cell spawns an actual C; exactly one owned cell consumed.
 - [ ] Recovery returns one cell, with original reserved flag; donation/sale cannot
