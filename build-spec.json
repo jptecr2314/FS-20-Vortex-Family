@@ -1,0 +1,25 @@
+{
+  "repo": "FS-20-Vortex-Family",
+  "version": "0.3.11",
+  "folder": "VortexConventional",
+  "dll": "VortexConventional.dll",
+  "id": "br.japensou.nuclearoption.vortexctol",
+  "parent": false,
+  "managed": [
+    "mscorlib.dll",
+    "netstandard.dll",
+    "System.dll",
+    "System.Core.dll",
+    "Assembly-CSharp.dll",
+    "UnityEngine.dll",
+    "UnityEngine.CoreModule.dll",
+    "UnityEngine.PhysicsModule.dll",
+    "UnityEngine.ParticleSystemModule.dll",
+    "UnityEngine.AudioModule.dll",
+    "UnityEngine.JSONSerializeModule.dll",
+    "UnityEngine.UIModule.dll",
+    "UnityEngine.UI.dll",
+    "UnityEngine.TextRenderingModule.dll",
+    "Mirage.dll"
+  ]
+}

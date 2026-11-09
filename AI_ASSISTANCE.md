@@ -1,0 +1,1 @@
+This mod was developed with substantial generative and agentic AI assistance. The project owner directs design and retains publication approval. NOMNOM isAiAssisted is declared as the string "True". AI-generated code/build assistance is not evidence of in-game validation.

@@ -1,0 +1,16 @@
+{
+  "id": "br.japensou.nuclearoption.vortexctol",
+  "artifact": {
+    "fileName": "FS-20-Vortex-Family.zip",
+    "version": "0.3.11",
+    "category": "preRelease",
+    "type": "plugin",
+    "gameVersion": "0.34.6",
+    "dependencies": [
+      {
+        "id": "com.nikkorap.blueprinter",
+        "version": "2.1.1"
+      }
+    ]
+  }
+}
