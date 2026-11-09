@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.4.0")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.4.1")]
     [BepInDependency("com.nikkorap.blueprinter")]
     [BepInIncompatibility("br.japensou.nuclearoption.sharedairframes")]
     public sealed class VortexConventionalPlugin : BaseUnityPlugin
@@ -51,6 +51,17 @@ namespace Japensou.NuclearOption.VortexConventional
             }
 
             harmony = new Harmony(PluginId);
+            try
+            {
+                Fs20SinglePlayer.Install(harmony, Logger);
+            }
+            catch (Exception error)
+            {
+                harmony.UnpatchSelf();
+                Logger.LogError("Single-player guard could not be installed; FS-20 features were not enabled: " + error);
+                return;
+            }
+
             harmony.Patch(apply, postfix: new HarmonyMethod(typeof(VortexConventionalPlugin), nameof(AfterBlueprinter)) { priority = Priority.Last });
             harmony.Patch(hangarAwake, postfix: new HarmonyMethod(typeof(VortexConventionalPlugin), nameof(AfterHangarAwake)));
             harmony.PatchAll(typeof(Fs20FlightController.FlightSample));
@@ -69,6 +80,7 @@ namespace Japensou.NuclearOption.VortexConventional
             refreshInventory = true;
         }
 
+        private void OnGUI() => Fs20SinglePlayer.DrawNotice();
         private void Update()
         {
             if (!refreshInventory)

@@ -1,8 +1,8 @@
-# FS-20-Vortex-Family 0.4.0
+# FS-20-Vortex-Family 0.4.1
 
-Adds FS-20A and FS-20C alongside the stock B, with a native-style selector, C tailhook and optional shared A/B/C stock in one plugin. C: 110/165 kN; A/C: up to +11 G.
+Single-player FS-20A and FS-20C variants alongside the stock B, with a native-style selector, C tailhook and optional shared A/B/C stock in one plugin. C: 110/165 kN; A/C: up to +11 G. Online sessions are blocked.
 
-**Local prerelease candidate. Live UI/flight/recovery and multiplayer acceptance are pending.**
+**Experimental single-player prerelease. Multiplayer is intentionally blocked.**
 Author: Jpgamer4045d. See AI_ASSISTANCE.md, THIRD_PARTY_NOTICES.md and QA.md.
 Not affiliated with or endorsed by Shockfront Studios. Licensed game required.
 
@@ -40,12 +40,17 @@ local release evidence; different game/library versions may produce different DL
 
 ## Compatibility and support
 
-Target game: 0.34.6. BepInEx 5, Blueprinter 2.1.1 (family), matching plugin
-versions and stock settings on host and clients. **Not a client-only mod and not yet multiplayer-certified.**
-Do not use on public servers before the host/refusal cases in QA.md pass.
-Native server checks remain, but no completed host-consent handshake test is claimed.
-Inventory toggle test: ./test-stock-option.ps1 -GamePath 'PATH_TO_GAME' reads local game libraries without launching the game.
-Opening sources or installing the package is not proof of registration, safe
-multiplayer behavior, flight stability, low RCS or carrier-landing performance.
+Target game: 0.34.6. Requires BepInEx 5 and Blueprinter 2.1.1.
+This release supports single-player only. The multiplayer menu, remote client
+connections, non-Offline hosting and listening transport servers are blocked.
+Native local Offline sessions remain permitted. Disable the mod and restart
+the game to play online. No host/client compatibility is claimed.
+
+Tests: ./test-offline.ps1 and ./test-stock-option.ps1 -GamePath 'PATH_TO_GAME'.
+The second command checks actual configuration and single-player guard prefixes
+against local game libraries, without opening sockets or launching the game.
+Gameplay features have been tested in-game by the author during development.
+Automated checks cover flight/control policies, inventory, saved settings and
+single-player guard prefixes. See QA.md for the validation record.
 For bug reports include version, minimal mod list, steps, and a redacted log;
 do not send account credentials or personal paths. See .github/ISSUE_TEMPLATE.

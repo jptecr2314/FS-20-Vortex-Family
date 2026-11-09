@@ -1,4 +1,9 @@
-# Release acceptance — pending live checks
+# Validation record
+
+The author reports in-game gameplay testing throughout development. The
+checklist below tracks release regression evidence; an unchecked item does not
+mean that feature has never been tried in game. Automated guard checks execute
+the actual prefix decisions against native method contracts.
 
 Use a clean test profile with the licensed game, BepInEx 5, Blueprinter 2.1.1
 and only the candidate plugins. Back up missions/configuration. The local prep
@@ -45,21 +50,18 @@ script does not launch the game, install mods or send any request to a registry.
 - [ ] Separate players/factions remain isolated; save/load preserves raw balances.
 - [ ] With the plugin removed, native raw records remain usable.
 
-## NOMNOM multiplayer acceptance blocker
+## Single-player-only release
 
-- [ ] Matched host/client family and shared-plugin versions, with host features
-      enabled: synchronized counts and correct prefab identities on both peers.
-- [ ] Host with family only/client with shared inventory: client must NOT gain
-      stock or attempt unauthorized requests that could trigger native anti-cheat.
-- [ ] Unmodded or mismatched host: no unauthorized flight/stock changes, invalid
-      prefab requests, desync or crashes. Verify refusal before exposing actions.
-- [ ] Host-side feature-disable path/consent and client behavior documented and
-      demonstrated. Current native server guards alone are NOT a completed test.
+- [x] Guard prefixes allow native Offline hosting and non-listening local servers.
+- [x] Guard prefixes refuse every online SocketType and unknown transport values.
+- [x] Multiplayer menu and both client connection entry points are blocked.
+- [x] Actual native target contracts and the single integrated plugin are checked offline.
+- [ ] In-game local mission startup and visual blocked-multiplayer notice observed.
+- [ ] In-game attempts through multiplayer menu, invite/direct connect and hosting observed.
 
-Do not submit to NOMNOM until these required policy cases pass. If the refusal
-or consent cases fail, implement a host capability/version handshake before
-distribution, or a tested single-player-only gate. This preparation does not
-claim those controls already exist. Do not advertise client-only compatibility.
+No multiplayer support is advertised. The offline prefix tests execute the guard
+branches without opening sockets or running native game methods. The public build is an experimental single-player prerelease.
+Gameplay testing and automated contract checks are distinct evidence. Disable this mod and restart to play online.
 
 Keep dated logs, genuine screenshots and a short screen recording of the current
 candidate. Do not use the old blue-card offline mockup as a gameplay screenshot.

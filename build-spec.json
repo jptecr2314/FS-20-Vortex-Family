@@ -1,6 +1,6 @@
 {
   "repo": "FS-20-Vortex-Family",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
   "id": "br.japensou.nuclearoption.vortexctol",
@@ -17,6 +17,8 @@
     "UnityEngine.ParticleSystemModule.dll",
     "UnityEngine.AudioModule.dll",
     "UnityEngine.JSONSerializeModule.dll",
+    "UnityEngine.IMGUIModule.dll",
+    "UniTask.dll",
     "UnityEngine.UIModule.dll",
     "UnityEngine.UI.dll",
     "UnityEngine.TextRenderingModule.dll",
