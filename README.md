@@ -6,6 +6,14 @@ Single-player FS-20A and FS-20C variants alongside the stock B, with a native-st
 Author: Jpgamer4045d. See AI_ASSISTANCE.md, THIRD_PARTY_NOTICES.md and QA.md.
 Not affiliated with or endorsed by Shockfront Studios. Licensed game required.
 
+## Aircraft comparison
+
+![FS-20A, FS-20B and FS-20C — top-view comparison](docs/images/fs20-abc-comparison.png)
+
+![FS-20 family — textured 3D renders](docs/images/fs20-abc-renders.png)
+
+Same-scale model renders with base textures and nominal mod specifications.
+
 ## Install
 
 1. Install BepInEx 5 for the game; install Blueprinter 2.1.1 for Vortex Family.
