@@ -6,13 +6,12 @@ Single-player FS-20A and FS-20C variants alongside the stock B, with a native-st
 Author: Jpgamer4045d. See AI_ASSISTANCE.md, THIRD_PARTY_NOTICES.md and QA.md.
 Not affiliated with or endorsed by Shockfront Studios. Licensed game required.
 
-## Optional Manual Tailhook add-on
+## Related independent mod
 
-[NO Manual Tailhook 0.1.1](addons/manual-tailhook/README.md) provides **Left Ctrl+H**
-to deploy/retract an equipped hook and **Left Ctrl+Left Shift+H** to restore
-automatic control. HUD messages and configuration descriptions are English.
-This is a separate optional download; the Vortex aircraft release stays 0.4.1.
-See the add-on page for installation, source and its own validation limits.
+[NO Manual Tailhook](https://github.com/jptecr2314/NO-Manual-Tailhook) is now
+maintained in its own repository, with its own source, build and downloads.
+It provides manual deploy/retract control for equipped aircraft hooks and an
+optional FS-20C adapter. Install it separately if desired.
 
 ## Aircraft comparison
 
