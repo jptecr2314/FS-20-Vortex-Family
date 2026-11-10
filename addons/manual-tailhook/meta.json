@@ -1,0 +1,10 @@
+{
+  "id": "br.japensou.nuclearoption.manualtailhook",
+  "artifact": {
+    "fileName": "NO-Manual-Tailhook-0.1.1.zip",
+    "version": "0.1.1",
+    "category": "preRelease",
+    "type": "plugin",
+    "gameVersion": "0.34.6"
+  }
+}
