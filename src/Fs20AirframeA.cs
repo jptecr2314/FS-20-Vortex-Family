@@ -48,6 +48,8 @@ namespace Japensou.NuclearOption.VortexConventional
                 }
 
                 Fs20AInternalTank.Install(prefab.transform);
+                Fs20ExpandedBays.Install(encyclopedia, prefab.transform, false);
+                Fs20ExteriorPaint.Install(prefab.transform);
                 Fs20AFlightController.Configure(prefab.transform);
                 var filter = prefab.GetComponentInChildren<ControlsFilter>(true);
                 var hover = Fs20Tuning.Field(typeof(ControlsFilter), "autoHover").GetValue(filter);
@@ -72,7 +74,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 var info = source.aircraftInfo;
                 definition.aircraftInfo = new AircraftInfo
                 {
-                    emptyWeight = info.emptyWeight - RemovedMass - Fs20AUpgradeSpec.EngineInstallationSaving + Fs20AUpgradeSpec.TankDryMass,
+                    emptyWeight = info.emptyWeight - RemovedMass - Fs20AUpgradeSpec.EngineInstallationSaving + Fs20AUpgradeSpec.TankDryMass + Fs20BaySpec.AirframeMassIncrease,
                     maxSpeed = info.maxSpeed,
                     stallSpeed = info.stallSpeed,
                     maneuverability = Fs20AEnergyEnvelope.MaximumG,

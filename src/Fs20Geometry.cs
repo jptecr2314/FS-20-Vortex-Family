@@ -168,6 +168,32 @@ namespace Japensou.NuclearOption.VortexConventional
 
                     transform.position = root.TransformPoint(position);
                 }
+
+                foreach (Transform hinge in transforms.Where(t => t.name.StartsWith("slatHinge_", StringComparison.Ordinal)))
+                {
+                    Matrix4x4 native = originals[hinge];
+                    Vector3 pivot = native.MultiplyPoint3x4(Vector3.zero);
+                    Vector3 axis = native.MultiplyVector(Vector3.forward).normalized;
+                    float start = float.PositiveInfinity;
+                    float end = float.NegativeInfinity;
+                    foreach (MeshState state in states.Where(s => s.Filter != null && s.Transform.IsChildOf(hinge)))
+                    {
+                        foreach (Vector3 vertex in state.Source.vertices)
+                        {
+                            Vector3 point = state.LocalToAircraft.MultiplyPoint3x4(vertex);
+                            float station = Vector3.Dot(point - pivot, axis);
+                            start = Mathf.Min(start, station);
+                            end = Mathf.Max(end, station);
+                        }
+                    }
+
+                    if (float.IsInfinity(start) || float.IsInfinity(end))
+                        throw new InvalidOperationException("FS-20C slat mesh missing: " + hinge.name);
+                    Vector3 mappedAxis = Fs20SlatHinge.MappedAxis(pivot, axis, start, end);
+                    var marker = hinge.gameObject.AddComponent<Fs20SlatHinge>();
+                    marker.Axis = hinge.parent.InverseTransformDirection(root.TransformDirection(mappedAxis)).normalized;
+                    marker.ClosedRotation = hinge.localRotation;
+                }
             }
 
             foreach (MeshState state in states)

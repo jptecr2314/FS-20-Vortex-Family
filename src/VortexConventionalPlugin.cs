@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.4.1")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.5.8")]
     [BepInDependency("com.nikkorap.blueprinter")]
     [BepInIncompatibility("br.japensou.nuclearoption.sharedairframes")]
     public sealed class VortexConventionalPlugin : BaseUnityPlugin
@@ -34,6 +34,7 @@ namespace Japensou.NuclearOption.VortexConventional
         private ConfigEntry<bool> sharedStock;
         private bool refreshInventory;
         internal static Fs20FlapMode FlapMode => instance == null ? Fs20FlapMode.Auto : instance.flapMode.Value;
+        internal static void ReportAssetState(string message) => instance?.Logger.LogInfo(message);
 
         private void Awake()
         {
@@ -67,11 +68,22 @@ namespace Japensou.NuclearOption.VortexConventional
             harmony.PatchAll(typeof(Fs20FlightController.FlightSample));
             harmony.PatchAll(typeof(Fs20FlightController.PrepareEnvelope));
             harmony.PatchAll(typeof(Fs20FlightController.ElevonJob));
+            harmony.PatchAll(typeof(Fs20SlatHinge.AnimatePatch));
             harmony.PatchAll(typeof(VtolGauge));
             harmony.PatchAll(typeof(Fs20FamilyMenu.InitializePatch));
             harmony.PatchAll(typeof(Fs20FamilyMenu.RefreshPatch));
             harmony.PatchAll(typeof(Fs20HookFairing.BayInterlock));
             harmony.PatchAll(typeof(Fs20HookFairing.DepartureInterlock));
+            harmony.PatchAll(typeof(Fs20HookFairing.ScheduledInterlock));
+            harmony.PatchAll(typeof(Fs20HookFairing.ArrestingOverload));
+            harmony.PatchAll(typeof(Fs20LegacyRack.Spawn));
+            harmony.PatchAll(typeof(Fs20BayLoadout.Menu));
+            harmony.PatchAll(typeof(Fs20BayLoadout.Options));
+            harmony.PatchAll(typeof(Fs20BayLoadout.Selection));
+            harmony.PatchAll(typeof(Fs20BayLoadout.Spawn));
+            harmony.PatchAll(typeof(Fs20BayLoadout.Saved));
+            harmony.PatchAll(typeof(Fs20ExteriorPaint.LiveryChanged));
+            harmony.PatchAll(typeof(Fs20ExteriorPaint.PartLiveryChanged));
             SharedAirframeStock.Enable(Logger);
         }
 
@@ -159,9 +171,10 @@ namespace Japensou.NuclearOption.VortexConventional
                 var swivel = prefab.GetComponent<SwivelDuctSystem>();
                 if (aircraft == null || network == null || swivel == null)
                     throw new InvalidOperationException("Native FS-20 prefab layout changed.");
-                Fs20Geometry.Apply(prefab.transform);
                 RemoveVtolHardware(prefab.transform, swivel);
+                Fs20Geometry.Apply(prefab.transform);
                 ConfigureMassAndStructure(prefab.transform);
+                Fs20ExpandedBays.Install(encyclopedia, prefab.transform, true);
                 Fs20Tuning.Configure(prefab.transform);
                 prefab.AddComponent<Fs20FlightController>();
                 parameters = Instantiate(original.aircraftParameters);
@@ -185,7 +198,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 var stockInfo = original.aircraftInfo;
                 definitionCopy.aircraftInfo = new AircraftInfo
                 {
-                    emptyWeight = Fs20Tuning.EmptyMass,
+                    emptyWeight = Fs20Tuning.EmptyMass + Fs20BaySpec.AirframeMassIncrease + Fs20BaySpec.HookWellMass,
                     maxSpeed = stockInfo.maxSpeed,
                     stallSpeed = stockInfo.stallSpeed,
                     maneuverability = Fs20FlightEnvelope.MaximumG,
@@ -194,6 +207,11 @@ namespace Japensou.NuclearOption.VortexConventional
                 definitionCopy.unitPrefab = prefab;
                 ((Unit)aircraft).definition = definitionCopy;
                 network.PrefabHash = PrefabHash;
+                // Complete optional equipment while the template is inactive;
+                // never expose a selectable C with a half-built hook assembly.
+                Fs20TailHook.Add(encyclopedia, definitionCopy);
+                Fs20ExpandedBays.AddCarrierWeapons(encyclopedia, prefab.transform);
+                Fs20ExteriorPaint.Install(prefab.transform);
                 prefab.SetActive(true);
                 definitionCopy.mass = prefab.GetComponentsInChildren<UnitPart>(true).Sum(part => part.GetMass());
                 encyclopedia.aircraft.Add(definitionCopy);
@@ -221,7 +239,7 @@ namespace Japensou.NuclearOption.VortexConventional
 
             variant = definitionCopy;
             TryInstallVapor(variant, true);
-            Fs20TailHook.Add(encyclopedia, variant);
+            Logger.LogInfo("FS-20C template complete: hook=" + variant.unitPrefab.GetComponent<Aircraft>().weaponManager.hardpointSets.Any(s => s.weaponOptions.Any(w => w != null && w.jsonKey == Fs20TailHook.Key)) + ", groups=" + variant.unitPrefab.GetComponent<Aircraft>().weaponManager.hardpointSets.Length + ", paint=" + (variant.unitPrefab.GetComponent<Fs20ExteriorPaint>() != null) + ".");
             foreach (var hangar in Resources.FindObjectsOfTypeAll<Hangar>())
                 AddToHangar(hangar);
             Logger.LogInfo($"Registered {Label} ({VariantKey}), span {variant.width:F2} m, " + $"110/165 kN, nominal empty {variant.aircraftInfo.emptyWeight:F0} kg, " + $"prefab part mass {variant.mass:F0} kg; short-deck performance requires flight validation.");
@@ -247,6 +265,7 @@ namespace Japensou.NuclearOption.VortexConventional
             RemoveEquipment(root, "liftFan", LiftFanHardwareMass, "liftFan_blades", "liftFan_thrustTransform");
             RemoveEquipment(root, "wing1a_L/wing2a_L", RollPostHardwareMass, "rollPost_L");
             RemoveEquipment(root, "wing1a_R/wing2a_R", RollPostHardwareMass, "rollPost_R");
+            Fs20VtolGeometry.Remove(root);
         }
 
         [HarmonyPatch(typeof(NozzleGauge), "Refresh")]

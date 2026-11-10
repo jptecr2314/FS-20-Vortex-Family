@@ -1,6 +1,6 @@
 {
   "repo": "FS-20-Vortex-Family",
-  "version": "0.4.1",
+  "version": "0.5.8",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
   "id": "br.japensou.nuclearoption.vortexctol",
@@ -23,5 +23,62 @@
     "UnityEngine.UI.dll",
     "UnityEngine.TextRenderingModule.dll",
     "Mirage.dll"
+  ],
+  "sources": [
+    "src/VortexConventionalPlugin.cs",
+    "src/Fs20Geometry.cs",
+    "src/Fs20SlatHinge.cs",
+    "src/Fs20MeshIslands.cs",
+    "src/Fs20VtolGeometry.cs",
+    "src/Fs20VtolSpec.cs",
+    "src/Fs20FlightController.cs",
+    "src/Fs20FlightEnvelope.cs",
+    "src/Fs20LandingEnvelope.cs",
+    "src/Fs20AirframeA.cs",
+    "src/Fs20AUpgradeSpec.cs",
+    "src/Fs20AInternalTank.cs",
+    "src/Fs20AEnergyEnvelope.cs",
+    "src/Fs20AFlightController.cs",
+    "src/Fs20VaporEnvelope.cs",
+    "src/Fs20ManeuverVapor.cs",
+    "src/Fs20FamilyMenu.cs",
+    "src/Fs20VariantOverlayLayout.cs",
+    "src/Fs20TailHook.cs",
+    "src/Fs20HookBayGeometry.cs",
+    "src/Fs20HookInterior.cs",
+    "src/Fs20VentralHookBay.cs",
+    "src/Fs20HookUv.cs",
+    "src/Fs20BaySpec.cs",
+    "src/Fs20InternalMeshes.cs",
+    "src/Fs20InteriorFinish.cs",
+    "src/Fs20ExteriorPaint.cs",
+    "src/Fs20PaintPixels.cs",
+    "src/Fs20HatchHinges.cs",
+    "src/Fs20SkinSurgery.cs",
+    "src/Fs20PanelUv.cs",
+    "src/Fs20PanelSkin.cs",
+    "src/Fs20InternalDucts.cs",
+    "src/Fs20DuctIslandSpec.cs",
+    "src/Fs20ExpandedBays.cs",
+    "src/Fs20LegacyRacks.cs",
+    "src/Fs20BayLoadout.cs",
+    "src/Fs20AugerMount.cs",
+    "src/Fs20AugerOptions.cs",
+    "src/Fs20HookMechanism.cs",
+    "src/Fs20BayMassCenter.cs",
+    "src/Fs20BaySupports.cs",
+    "src/SharedAirframes/AirframePool.cs",
+    "src/SharedAirframes/SharedAirframesPlugin.cs",
+    "src/Fs20SinglePlayer.cs"
+  ],
+  "resources": [
+    {
+      "path": "assets/fs20-internals/Fs20Internals.bin",
+      "name": "Fs20Internals.bin"
+    },
+    {
+      "path": "assets/fs20-internals/Fs20InteriorUv.bin",
+      "name": "Fs20InteriorUv.bin"
+    }
   ]
 }

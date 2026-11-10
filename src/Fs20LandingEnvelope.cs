@@ -28,6 +28,8 @@ namespace Japensou.NuclearOption.VortexConventional
     internal sealed class Fs20HookDepartureLock
     {
         internal bool Locked { get; private set; } = true;
+        internal static bool AllowAutomatic(bool locked, bool gear, bool overloaded, bool hooked) =>
+            hooked || (!locked && gear && !overloaded);
 
         private float airborneTime, descentTime;
         internal void Step(bool airborne, bool gear, float altitude, float verticalSpeed, float throttle, bool hooked, float dt)

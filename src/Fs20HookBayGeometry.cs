@@ -181,7 +181,7 @@ namespace Japensou.NuclearOption.VortexConventional
             yield return new Vector4(0, -1, 0, -0.10f); // y <= -0.10 m
         }
 
-        private static void Split(List<Vertex> input, Matrix4x4 map, Vector4 plane, out List<Vertex> positive, out List<Vertex> negative)
+        internal static void Split(List<Vertex> input, Matrix4x4 map, Vector4 plane, out List<Vertex> positive, out List<Vertex> negative)
         {
             positive = new List<Vertex>();
             negative = new List<Vertex>();
@@ -208,7 +208,7 @@ namespace Japensou.NuclearOption.VortexConventional
             }
         }
 
-        private static void TransformMesh(Mesh mesh, Matrix4x4 matrix)
+        internal static void TransformMesh(Mesh mesh, Matrix4x4 matrix)
         {
             mesh.vertices = mesh.vertices.Select(matrix.MultiplyPoint3x4).ToArray();
             var normalMatrix = matrix.inverse.transpose;
@@ -221,7 +221,7 @@ namespace Japensou.NuclearOption.VortexConventional
             mesh.RecalculateBounds();
         }
 
-        private sealed class Vertex
+        internal sealed class Vertex
         {
             internal Vector3 P, N;
             internal Vector4 T;
@@ -237,7 +237,7 @@ namespace Japensou.NuclearOption.VortexConventional
             };
         }
 
-        private sealed class Builder
+        internal sealed class Builder
         {
             private readonly Vector3[] p, n;
             private readonly Vector4[] t;

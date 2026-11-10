@@ -19,7 +19,12 @@ if($spec.parent){
 foreach($file in $references){if(!(Test-Path -LiteralPath $file)){throw "Required local dependency not found: $file"}}
 $argsList=@('/nologo','/target:library','/langversion:latest','/nostdlib+','/deterministic+',('/pathmap:'+$PSScriptRoot+'=/_/src'),('/out:'+(Join-Path $out $spec.dll)))
 $argsList+=$references|ForEach-Object {'/reference:'+$_}
-$argsList+=Get-ChildItem (Join-Path $PSScriptRoot 'src') -Filter '*.cs' -Recurse|Sort-Object FullName|ForEach-Object FullName
+$argsList+=$spec.sources|ForEach-Object {Join-Path $PSScriptRoot $_}
+foreach($resource in $spec.resources){
+ $file=Join-Path $PSScriptRoot $resource.path
+ if(!(Test-Path -LiteralPath $file)){throw "Authored geometry resource missing: $file"}
+ $argsList+='/resource:'+$file+','+$resource.name
+}
 & (Join-Path $PSScriptRoot '.deps/compiler/tasks/net472/csc.exe') @argsList
 if($LASTEXITCODE -ne 0){throw 'Build failed'}
 foreach($name in @('README.md','THIRD_PARTY_NOTICES.md','AI_ASSISTANCE.md','CHANGELOG.md','meta.json')){

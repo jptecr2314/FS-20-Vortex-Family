@@ -29,18 +29,18 @@ namespace Japensou.NuclearOption.VortexConventional
                 mount.mountName = "Retractable Tail Hook";
                 mount.RCS = mount.emptyRCS = 0f;
                 mount.drag = mount.emptyDrag = 0f;
-                // Keep the 95 kg assembly budget pending structural testing.
-                mount.mass = mount.emptyMass = 95f;
+                mount.mass = mount.emptyMass = Fs20BaySpec.HookMass;
                 mount.prefab = UnityEngine.Object.Instantiate(source.prefab, definition.unitPrefab.transform.parent, false);
                 mount.prefab.name = Key;
                 // Use the native hook and arrestor interface.
-                Fs20Tuning.Set(mount.prefab.GetComponent<TailHook>(), "mass", 95f);
+                Fs20Tuning.Set(mount.prefab.GetComponent<TailHook>(), "mass", Fs20BaySpec.HookMass);
                 var nativeHook = mount.prefab.GetComponent<TailHook>();
-                Fs20Tuning.Set(nativeHook, "stowedAngle", 189.77f);
-                Fs20Tuning.Set(nativeHook, "deployedAngle", 110f);
+                Fs20Tuning.Set(nativeHook, "stowedAngle", Fs20BaySpec.HookStowedAngle);
+                Fs20Tuning.Set(nativeHook, "deployedAngle", Fs20BaySpec.HookDeployedAngle);
                 var arm = (Transform)Fs20Tuning.Field(typeof(TailHook), "hook").GetValue(nativeHook);
-                arm.localScale = new Vector3(1, 1, .5f);
-                Fs20HookInterior.AddSupport(mount.prefab.transform, .19f, .04f, .12f);
+                arm.localScale = new Vector3(1, 1, Fs20BaySpec.HookScale);
+                arm.localRotation = Quaternion.Euler(Fs20BaySpec.HookStowedAngle, 0, 0);
+                Fs20HookMechanism.Install(mount.prefab.transform, arm, Fs20HookInterior.NativeMetal(mount.prefab.transform));
                 mount.prefab.AddComponent<Fs20HookFairing>();
                 // Leave the native aft skin and UVs intact.
                 Fs20VentralHookBay.Build(definition.unitPrefab.transform, Fs20HookInterior.NativeMetal(mount.prefab.transform));
@@ -105,6 +105,54 @@ namespace Japensou.NuclearOption.VortexConventional
         private float coverOpen;
         private readonly Fs20HookDepartureLock departure = new Fs20HookDepartureLock();
         private float sampledAt = -1f;
+        internal bool Overloaded;
+        internal static Fs20HookFairing ForHook(TailHook hook)
+        {
+            var fairing = hook.GetComponent<Fs20HookFairing>();
+            if (fairing != null) return fairing;
+            var owner = hook.unitPart == null ? hook.GetComponentInParent<Aircraft>() : hook.unitPart.parentUnit as Aircraft;
+            if (owner == null || owner.definition == null || owner.definition.jsonKey != "JP_FS20_CTOL") return null;
+            return hook.gameObject.AddComponent<Fs20HookFairing>();
+        }
+
+        private bool AllowAutomatic()
+        {
+            EnforceDepartureLock();
+            var owner = hook == null || hook.unitPart == null ? null : hook.unitPart.parentUnit as Aircraft;
+            return hook != null && owner != null && Fs20HookDepartureLock.AllowAutomatic(
+                departure.Locked, owner.gearDeployed, Overloaded, (bool)Hooked.GetValue(hook));
+        }
+
+        // Guard the scheduled delegate itself. Other hook mounts on a C must
+        // obey the same departure lock as the optional internal hook.
+        [HarmonyPatch(typeof(TailHook), "Start")]
+        internal static class ScheduledInterlock
+        {
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var schedule = AccessTools.Method(typeof(SlowUpdateExtensions), "StartSlowUpdate", new[]
+                    { typeof(MonoBehaviour), typeof(float), typeof(Action), typeof(System.Threading.CancellationToken) });
+                var guarded = AccessTools.Method(typeof(ScheduledInterlock), nameof(Schedule));
+                foreach (var code in instructions)
+                {
+                    if (code.Calls(schedule)) code.operand = guarded;
+                    yield return code;
+                }
+            }
+
+            private static void Schedule(MonoBehaviour behaviour, float interval, Action update, System.Threading.CancellationToken token)
+            {
+                var nativeHook = behaviour as TailHook;
+                var fairing = nativeHook == null ? null : ForHook(nativeHook);
+                if (fairing != null)
+                {
+                    Action nativeUpdate = update;
+                    update = () => { if (fairing != null && fairing.AllowAutomatic()) nativeUpdate(); };
+                    VortexConventionalPlugin.ReportAssetState("FS-20C scheduled tailhook guard bound; departure lock=" + fairing.departure.Locked + ".");
+                }
+                SlowUpdateExtensions.StartSlowUpdate(behaviour, interval, update, token);
+            }
+        }
         internal void EnforceDepartureLock()
         {
             ResolveBay();
@@ -118,7 +166,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 departure.Step((bool)Fs20Tuning.Airborne.GetValue(owner), owner.gearDeployed, owner.radarAlt, owner.rb.velocity.y, owner.GetInputs().throttle, hooked, Time.fixedDeltaTime);
             }
 
-            if ((departure.Locked || !owner.gearDeployed) && !hooked)
+            if ((Overloaded || departure.Locked || !owner.gearDeployed) && !hooked)
             {
                 Deployed.SetValue(hook, false);
                 if ((float)Amount.GetValue(hook) > .001f)
@@ -165,7 +213,7 @@ namespace Japensou.NuclearOption.VortexConventional
             if (bay != null && bay.Cover != null)
             {
                 float drop = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(coverOpen / 0.25f));
-                float turn = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.25f, 1f, coverOpen));
+                float turn = Mathf.SmoothStep(0f, 1f, bay.DropOffset.sqrMagnitude < 1e-10f ? coverOpen : Mathf.InverseLerp(0.25f, 1f, coverOpen));
                 bay.Cover.localPosition = bay.ClosedPosition + bay.DropOffset * drop;
                 bay.Cover.localRotation = bay.ClosedRotation * Quaternion.AngleAxis(-bay.OpeningDegrees * turn, Vector3.forward);
             }
@@ -195,7 +243,7 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             private static bool Prefix(TailHook __instance)
             {
-                var bay = __instance.GetComponent<Fs20HookFairing>();
+                var bay = ForHook(__instance);
                 if (bay != null)
                     bay.EnforceDepartureLock();
                 return bay == null || bay.CanAnimateHook;
@@ -254,12 +302,25 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             private static bool Prefix(TailHook __instance)
             {
+                var fairing = ForHook(__instance);
+                return fairing == null || fairing.AllowAutomatic();
+            }
+        }
+
+        [HarmonyPatch(typeof(TailHook), "ApplyForce")]
+        internal static class ArrestingOverload
+        {
+            private static bool Prefix(TailHook __instance, Vector3 __0)
+            {
                 var fairing = __instance.GetComponent<Fs20HookFairing>();
-                if (fairing == null)
-                    return true;
-                fairing.EnforceDepartureLock();
-                var owner = __instance.unitPart == null ? null : __instance.unitPart.parentUnit as Aircraft;
-                return (bool)Hooked.GetValue(__instance) || (!fairing.departure.Locked && owner != null && owner.gearDeployed);
+                if (fairing == null) return true;
+                if (fairing.Overloaded) return false;
+                if (__0.sqrMagnitude <= Fs20BaySpec.HookBreakForce * Fs20BaySpec.HookBreakForce) return true;
+                fairing.Overloaded = true;
+                AccessTools.Method(typeof(TailHook), "Unhook").Invoke(__instance, null);
+                Deployed.SetValue(__instance, false);
+                Debug.LogWarning("FS-20C tail hook overload: arrestor released; hook unavailable until respawn.");
+                return false;
             }
         }
     }
