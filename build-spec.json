@@ -1,9 +1,9 @@
 {
   "repo": "FS-20-Vortex-Family",
-  "version": "0.5.8",
+  "version": "0.5.10",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
-  "id": "br.japensou.nuclearoption.vortexctol",
+  "id": "fs20vortexfamily",
   "parent": false,
   "managed": [
     "mscorlib.dll",
@@ -69,7 +69,8 @@
     "src/Fs20BaySupports.cs",
     "src/SharedAirframes/AirframePool.cs",
     "src/SharedAirframes/SharedAirframesPlugin.cs",
-    "src/Fs20SinglePlayer.cs"
+    "src/Fs20SinglePlayer.cs",
+    "src/Fs20IdentityMigration.cs"
   ],
   "resources": [
     {

@@ -434,3 +434,28 @@ Evidence: 48,276 managed option/migration/support/geometry checks,
 inspected in the installed game assembly. The main/trial games are not
 launched or closed by this update; current gameplay acceptance stays with
 the author. No GitHub or NOMM publication is part of this local revision.
+
+
+## 0.5.10 identifier migration
+
+Built from the published 0.5.8 source, with changes limited to plugin and
+Harmony IDs, the startup identity migration and distribution metadata/docs.
+No aircraft, weapon, saved definition key, physics or single-player guard
+implementation was changed. The newer T and multiplayer builds are excluded.
+
+NOMM source commit 8786356fd9426c261bec6fed168f25c2f1fee815 identifies installed
+mods by meta.json.id and matches updates by that same catalog key. Its
+installer overwrites package metadata with the requested catalog ID.
+Accordingly, retaining the old entry is necessary: deleting or renaming it
+would strand installations that have not yet run the migration.
+
+The build and static assembly checks verify the new plugin GUID, the old-ID
+incompatibility guard, migration before configuration bindings, unchanged
+native definition keys, unchanged authored resources and the retained
+single-player guard. The BepInEx constructor was inspected: it does not
+create a missing configuration file, so the startup copy precedes bindings.
+The install/update lifecycle is simulated separately using the inspected
+NOMM directory, metadata overwrite, enable/disable and version rules.
+These are offline checks; no live NOMM installation, game launch or Unity
+JSON call was exercised for this release. Previous test/gameplay evidence
+above remains historical evidence from the respective versions.

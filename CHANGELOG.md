@@ -1,3 +1,10 @@
+## 0.5.10
+
+- Rename the plugin/package ID to `fs20vortexfamily`.
+- Preserve the previous catalog ID as an update bridge.
+- Retain existing settings and atomically migrate this installation's NOMM metadata, with a backup.
+- Keep 0.5.8 aircraft/gameplay and single-player behavior.
+
 # 0.5.8 - Auger plus original Outer loadouts
 
 - Restore all six native Outer options alongside Auger in Inner, including saved presets. Keep the original selector groups and C hook slot.

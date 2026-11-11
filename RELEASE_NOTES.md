@@ -1,33 +1,29 @@
-# FS-20 Vortex Family 0.5.8
+# FS-20 Vortex Family 0.5.10
 
-Expanded internal weapon bays for FS-20A/C now carry an Auger in Inner while
-keeping every original Outer option available on the same side:
+Changes the plugin/package ID to `fs20vortexfamily`. Aircraft, weapons,
+physics, shared-stock behavior and the single-player boundary remain as in
+0.5.8. This release does not include the separate multiplayer or T studies.
 
-- AAM-29 Scythe, MMR-S3, IRM-S2 and AAM-36 Scimitar.
-- PAB-125 x2 and PAB-80LR x2.
+## Updating an existing NOMM installation
 
-Rack positions and connected supports adapt to the combined load. Existing
-presets keep their Outer selection; there are no extra Auger-only selectors.
+Update your existing FS-20 entry. Do not install a second copy from the new
+entry. The old catalog ID remains as an update bridge; it downloads the
+same 0.5.10 plugin. NOMM writes the old ID into its installation metadata,
+so the plugin migrates that metadata on its first enabled game launch.
+After closing the game, refresh NOMM to see `fs20vortexfamily`.
 
-This update also includes the changes developed since 0.4.1: enlarged bays
-and continuous doors, a recessed FS-20C tailhook compartment with departure
-interlocks, revised interior UVs/native-map finish, removal of remaining VTOL
-hardware from A/C, and slat hinges adjusted to the C's larger wings.
+Existing BepInEx settings are copied only if the new configuration does
+not exist. The old configuration is kept. Replaced NOMM metadata receives
+a backup alongside its original file. The migration touches only this
+plugin's ancestor metadata, never another mod or the catalog itself.
+If a file cannot be updated, an English warning is logged and the old
+catalog entry continues to provide the update. Disabled installations
+migrate when they are enabled and the game is next started.
 
-**Known visual compromise:** some weapon meshes can pass through the bay
-structure during guided release. Native damage/collision handling stays active.
-Paired Outer rails keep the active projectile spawn farther from the airframe.
-All 24 A/C/side/Outer stored combinations and post-rail native projectile
-geometry were checked offline; 48,276 option/migration/support/geometry checks
-passed. See [QA.md](https://github.com/jptecr2314/FS-20-Vortex-Family/blob/v0.5.8/QA.md)
-for the validation record and remaining gameplay checks.
+For a fresh installation, use the `fs20vortexfamily` catalog entry.
+Keep only one installed copy. The native aircraft/weapon definition keys
+are unchanged, preserving existing A/C mission and loadout references.
 
-Single-player experimental prerelease for Nuclear Option 0.34.6. Install
-BepInEx 5 and Blueprinter 2.1.1 separately, close the game, then extract the
-ZIP's BepInEx folder into the game directory or import the ZIP into NOMM.
-The aircraft family and optional shared A/B/C stock remain one plugin. Online
-sessions are blocked. [Manual Tailhook](https://github.com/jptecr2314/NO-Manual-Tailhook)
-is a separate optional mod.
-
-Author: Jpgamer4045d. MIT license. AI assistance is declared in
-AI_ASSISTANCE.md. No licensed game assets or dependency binaries are bundled.
+This is still an experimental single-player release. Migration was checked
+against the NOMM source and compiled plugin metadata; the game was not
+launched for this identifier-only release. See QA.md for the precise scope.

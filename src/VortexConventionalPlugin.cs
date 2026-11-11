@@ -10,12 +10,13 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.5.8")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.5.10")]
     [BepInDependency("com.nikkorap.blueprinter")]
+    [BepInIncompatibility(Fs20IdentityMigration.PreviousId)]
     [BepInIncompatibility("br.japensou.nuclearoption.sharedairframes")]
     public sealed class VortexConventionalPlugin : BaseUnityPlugin
     {
-        private const string PluginId = "br.japensou.nuclearoption.vortexctol";
+        private const string PluginId = Fs20IdentityMigration.Id;
         private const string StockKey = "SmallFighter1";
         private const string VariantKey = "JP_FS20_CTOL";
         private const int PrefabHash = 0x6A20C701;
@@ -38,6 +39,7 @@ namespace Japensou.NuclearOption.VortexConventional
 
         private void Awake()
         {
+            Fs20IdentityMigration.Apply(Config, Logger);
             instance = this;
             sharedStock = SharedAirframeStock.Configure(Config);
             sharedStock.SettingChanged += OnStockSettingChanged;

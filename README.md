@@ -1,4 +1,4 @@
-# FS-20-Vortex-Family 0.5.8
+# FS-20-Vortex-Family 0.5.10
 
 0.5.8 restores every original Outer loadout alongside Auger in Inner, with load-specific rack poses and connected supports. Guided release may visually intersect the airframe; the author accepted this compromise. Native active-projectile geometry was checked after the rail. See QA.md for evidence and gameplay scope.
 
@@ -21,6 +21,13 @@ deploy/retract control and an optional FS-20C adapter. Install it separately.
 ![FS-20 family — textured 3D renders](docs/images/fs20-abc-renders.png)
 
 Same-scale model renders with base textures and nominal mod specifications.
+
+## Identifier and NOMM updates
+
+The plugin ID is `fs20vortexfamily`. Existing NOMM users: update the
+installed entry, launch the game once, close it, then refresh NOMM. Do not
+install a second copy. The previous ID remains in the catalog only as an
+update bridge. Your previous settings are retained; see RELEASE_NOTES.md.
 
 ## Install
 

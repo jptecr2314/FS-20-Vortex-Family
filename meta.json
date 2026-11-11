@@ -1,8 +1,8 @@
 {
-  "id": "br.japensou.nuclearoption.vortexctol",
+  "id": "fs20vortexfamily",
   "artifact": {
     "fileName": "FS-20-Vortex-Family.zip",
-    "version": "0.5.8",
+    "version": "0.5.10",
     "category": "preRelease",
     "type": "plugin",
     "gameVersion": "0.34.6",

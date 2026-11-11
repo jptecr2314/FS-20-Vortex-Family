@@ -16,7 +16,7 @@ namespace Japensou.NuclearOption.SharedAirframes
 {
     internal static class SharedAirframeStock
     {
-        private const string PatchId = "br.japensou.nuclearoption.vortexctol.stock";
+        private const string PatchId = "fs20vortexfamily.stock";
         private static Harmony harmony;
         private static ConfigEntry<bool> sharedStock;
         private static bool installed;
