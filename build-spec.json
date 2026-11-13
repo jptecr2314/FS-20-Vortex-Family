@@ -1,6 +1,6 @@
 {
   "repo": "FS-20-Vortex-Family",
-  "version": "6.0.7",
+  "version": "0.6.8",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
   "id": "fs20vortexfamily",
@@ -24,7 +24,8 @@
     "UnityEngine.UIModule.dll",
     "UnityEngine.UI.dll",
     "UnityEngine.TextRenderingModule.dll",
-    "Mirage.dll"
+    "Mirage.dll",
+    "Mirage.SocketLayer.dll"
   ],
   "sources": [
     "src/VortexConventionalPlugin.cs",
@@ -98,7 +99,11 @@
     "src/Fs20BaySupports.cs",
     "src/SharedAirframes/AirframePool.cs",
     "src/SharedAirframes/SharedAirframesPlugin.cs",
-    "src/Fs20SinglePlayer.cs"
+    "src/Multiplayer/Fs20NetworkPolicy.cs",
+    "src/Multiplayer/Fs20NetworkSession.cs",
+    "src/Multiplayer/Fs20NetworkSignature.cs",
+    "src/Multiplayer/Fs20NetworkSurfaces.cs",
+    "src/Multiplayer/Fs20SurfacePolicy.cs"
   ],
   "resources": [
     {

@@ -1,18 +1,7 @@
-# FS-20 Vortex Family 6.0.7
+# 0.6.8 multiplayer candidate
 
-- Include the FS-20T as a standard member of the A/B/C/T family in one DLL.
-- Retain the four-variant selector and configurable shared or separate stock.
-- Retire the old T experimental-enable gate without changing aircraft keys.
-- Include the latest C/T volumetric vapor, rear-panel/elevon coverage and
-  corrected density-advection direction from the 0.8.11 development build.
-- Replace the T's repeated pitch cut/rebuild near the flight envelope with a
-  continuous native-FBW rate reference. Retain immediate stick release and
-  hard protection for actual G/AoA exceedance; VTOL and manual input bypass it.
-- Retain the reviewed geometry, other flight paths, damage states, detachment
-  behavior and single-player boundary.
-- Use version 6.0.7 consistently in plugin and package metadata.
-- Preserve the canonical `fs20vortexfamily` ID and legacy configuration migration.
+Based on published 6.0.7, with A/B/C/T only. FS-20NA is not included.
 
-This is a complete family package. Do not install separate A/C/T aircraft
-DLLs alongside it. Publication and catalog acceptance are separate from
-local package preparation; see the release receipt for current delivery status.
+Adds explicitly enabled, matching-install multiplayer sessions, native authentication plus a definition/build handshake, host-owned shared-stock/flap policy, simulation-owner control guards, and bounded remote presentation for C/T slats, arresting hooks and measured wing vapor. Native replication remains responsible for controls, position, supply, damage and detachment.
+
+This is an isolated candidate. Consult QA.md for observed checks and remaining limits before distribution.

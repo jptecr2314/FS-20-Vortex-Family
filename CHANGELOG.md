@@ -1,3 +1,12 @@
+# 0.6.8
+
+- Isolated multiplayer adaptation of the published 6.0.7 A/B/C/T family.
+- Matching-build and definition-order exchange after native game authentication.
+- Host opt-in and session-owned stock/flap policy without overwriting client configuration.
+- Owner-only A/C/T flight assistance and arresting forces.
+- Remote C/T slat, hook and physics-driven vapor presentation at a bounded cadence.
+- No FS-20NA, geometry, textures or flight tuning from 6.1.x.
+
 ## 6.0.7
 
 - Include the FS-20T as a standard member of the A/B/C/T family in one DLL.

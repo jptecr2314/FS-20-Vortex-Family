@@ -16,10 +16,3 @@ $exe=Join-Path $TestRoot 'StockConfigChecks.exe'
 if($LASTEXITCODE -ne 0){throw 'Stock config test compilation failed'}
 & $exe $PluginAssembly $GamePath (Join-Path $TestRoot 'option.cfg')
 if($LASTEXITCODE -ne 0){throw 'Stock config checks failed'}
-$singlePlayer=Join-Path $PSScriptRoot 'tests/test_fs20_singleplayer.cs'
-if(!(Test-Path -LiteralPath $singlePlayer)){$singlePlayer=Join-Path $PSScriptRoot 'test_fs20_singleplayer.cs'}
-$gateExe=Join-Path $TestRoot 'SinglePlayerChecks.exe'
-& $Compiler /nologo /target:exe "/out:$gateExe" $singlePlayer
-if($LASTEXITCODE -ne 0){throw 'Single-player test compilation failed'}
-& $gateExe $PluginAssembly $GamePath
-if($LASTEXITCODE -ne 0){throw 'Single-player gate checks failed'}

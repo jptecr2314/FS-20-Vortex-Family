@@ -1,0 +1,26 @@
+{
+    "passed": true,
+    "gameLaunched": false,
+    "steamLoginTested": false,
+    "fullFlightTested": false,
+    "error": "",
+    "pluginSha256": "0e31ada86353a093dc4504cac8d9f7d61e8fdd37818604fc6493d9f4ac3e9b35",
+    "unityVersion": "2022.3.62f2",
+    "checks": 105,
+    "nativeWirePackets": 11,
+    "patches": 26,
+    "scenarios": [
+        "native-wire matching=True nativeSuccess=True tamperedAck=False",
+        "native-wire matching=False nativeSuccess=True tamperedAck=False",
+        "native-wire matching=True nativeSuccess=False tamperedAck=False",
+        "native-wire matching=True nativeSuccess=True tamperedAck=False",
+        "native-wire matching=True nativeSuccess=True tamperedAck=True",
+        "owner-only A/C/T controllers; NA absent",
+        "native byte-index damage/detachment contract",
+        "T slat motion; no remote wing-area edit; duplicate/owner rejection; detached/fragmented motion stop",
+        "C native slat animation and hook deployment/overload; owner-only arresting force",
+        "host stock/flap policy; original client configuration preserved/restored",
+        "actual T prefab: repeatable 42 parts; 8 damage owners and structural clone references",
+        "native surface serializer; unauthenticated presentation packet rejected"
+    ]
+}

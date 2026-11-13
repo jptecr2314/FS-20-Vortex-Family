@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "6.0.7")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.6.8")]
     [BepInDependency("com.nikkorap.blueprinter")]
     [BepInIncompatibility(Fs20IdentityMigration.PreviousId)]
     [BepInIncompatibility("br.japensou.nuclearoption.sharedairframes")]
@@ -72,7 +72,7 @@ namespace Japensou.NuclearOption.VortexConventional
             catch (Exception error)
             {
                 harmony.UnpatchSelf();
-                Logger.LogError("Single-player guard could not be installed; FS-20 features were not enabled: " + error);
+                Logger.LogError("Network compatibility hooks could not be installed; FS-20 features were not enabled: " + error);
                 return;
             }
 

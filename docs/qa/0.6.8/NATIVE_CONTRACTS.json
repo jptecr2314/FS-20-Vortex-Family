@@ -1,0 +1,137 @@
+{
+  "version": "0.6.8",
+  "candidateSha256": "0e31ada86353a093dc4504cac8d9f7d61e8fdd37818604fc6493d9f4ac3e9b35",
+  "passed": true,
+  "scope": "Static Mono.Cecil inspection only; no candidate IL executed",
+  "patchContracts": [
+    {
+      "patch": "MenuGate",
+      "target": "System.Void MainMenu::SelectMultiplayer()",
+      "verified": true
+    },
+    {
+      "patch": "ClientGate",
+      "target": "System.Void NuclearOption.Networking.NetworkManagerNuclearOption::StartClient(NuclearOption.Networking.ConnectOptions)",
+      "verified": true
+    },
+    {
+      "patch": "HostGate",
+      "target": "Cysharp.Threading.Tasks.UniTask NuclearOption.Networking.NetworkManagerNuclearOption::StartHostAsync(NuclearOption.Networking.HostOptions)",
+      "verified": true
+    },
+    {
+      "patch": "TransportClientGate",
+      "target": "System.Void Mirage.NetworkClient::Connect(System.String,System.Nullable`1<System.UInt16>)",
+      "verified": true
+    },
+    {
+      "patch": "TransportServerGate",
+      "target": "System.Void Mirage.NetworkServer::StartServer(Mirage.NetworkClient)",
+      "verified": true
+    },
+    {
+      "patch": "ClientHello",
+      "target": "Cysharp.Threading.Tasks.UniTaskVoid NuclearOption.Networking.Authentication.NetworkAuthenticatorNuclearOption::OnClientConnected(Mirage.INetworkPlayer)",
+      "verified": true
+    },
+    {
+      "patch": "Authenticate",
+      "target": "Cysharp.Threading.Tasks.UniTask`1<Mirage.Authentication.AuthenticationResult> NuclearOption.Networking.Authentication.NetworkAuthenticatorNuclearOption::AuthenticateAsync(Mirage.INetworkPlayer,NuclearOption.Networking.Authentication.NetworkAuthenticatorNuclearOption/AuthMessage,System.Threading.CancellationToken)",
+      "verified": true
+    },
+    {
+      "patch": "ServerAdmission",
+      "target": "System.Void NuclearOption.Networking.NetworkManagerNuclearOption::OnServerAuthenticated(Mirage.INetworkPlayer)",
+      "verified": true
+    },
+    {
+      "patch": "ClientAdmission",
+      "target": "System.Void NuclearOption.Networking.NetworkManagerNuclearOption::OnClientAuthenticated(Mirage.INetworkPlayer)",
+      "verified": true
+    },
+    {
+      "patch": "ServerDisconnected",
+      "target": "System.Void NuclearOption.Networking.Authentication.NetworkAuthenticatorNuclearOption::OnServerDisconnected(Mirage.INetworkPlayer)",
+      "verified": true
+    },
+    {
+      "patch": "ClientDisconnected",
+      "target": "System.Void NuclearOption.Networking.Authentication.NetworkAuthenticatorNuclearOption::OnClientDisconnected(Mirage.ClientStoppedReason)",
+      "verified": true
+    },
+    {
+      "patch": "ServerStopped",
+      "target": "System.Void NuclearOption.Networking.Authentication.NetworkAuthenticatorNuclearOption::OnStopServer()",
+      "verified": true
+    },
+    {
+      "patch": "StockPolicy",
+      "target": "System.Boolean Japensou.NuclearOption.SharedAirframes.SharedAirframeStock::get_Enabled()",
+      "verified": true
+    },
+    {
+      "patch": "FlapPolicy",
+      "target": "Japensou.NuclearOption.VortexConventional.Fs20FlapMode Japensou.NuclearOption.VortexConventional.VortexConventionalPlugin::get_FlapMode()",
+      "verified": true
+    },
+    {
+      "patch": "FlightAuthority",
+      "target": "A/C/T PrepareControls; owner-only",
+      "verified": true
+    },
+    {
+      "patch": "HookForceAuthority",
+      "target": "System.Void TailHook::ApplyForce(UnityEngine.Vector3)",
+      "verified": true
+    },
+    {
+      "patch": "BayMassAuthority",
+      "target": "System.Void Japensou.NuclearOption.VortexConventional.Fs20BayMassCenter::Refresh()",
+      "verified": true
+    },
+    {
+      "patch": "CompletedLoads",
+      "target": "System.Void AeroPart::ApplyJobFields()",
+      "verified": true
+    },
+    {
+      "patch": "AircraftTick",
+      "target": "System.Void Aircraft::FixedUpdate()",
+      "verified": true
+    },
+    {
+      "patch": "THighLiftAuthority",
+      "target": "System.Void Japensou.NuclearOption.VortexConventional.Fs20THighLift::FixedUpdate()",
+      "verified": true
+    },
+    {
+      "patch": "CHighLiftAuthority",
+      "target": "System.Void HighLiftDevice::FixedUpdate()",
+      "verified": true
+    },
+    {
+      "patch": "HookTickAuthority",
+      "target": "System.Void TailHook::FixedUpdate()",
+      "verified": true
+    },
+    {
+      "patch": "HookDepartureAuthority",
+      "target": "System.Void Japensou.NuclearOption.VortexConventional.Fs20HookFairing::EnforceDepartureLock()",
+      "verified": true
+    },
+    {
+      "patch": "HookDeployAuthority",
+      "target": "System.Void TailHook::CheckDeployConditions()",
+      "verified": true
+    }
+  ],
+  "nativeAuthenticationAwaited": true,
+  "nativeAuthenticationSuccessNeverSynthesized": true,
+  "steamPasswordBuildChecksUnmodified": true,
+  "perConnectionHostAdmission": true,
+  "simulationOwnerGuards": true,
+  "clientConfigurationNotRewritten": true,
+  "networkDefinitionIdsNotRewritten": true,
+  "gameLaunched": false,
+  "runtimeHandshakeTested": false
+}

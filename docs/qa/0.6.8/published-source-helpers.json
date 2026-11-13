@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "pluginSha256": "0E31ADA86353A093DC4504CAC8D9F7D61E8FDD37818604FC6493D9F4AC3E9B35",
+  "familyChecks": 503,
+  "stockConfigOnOffPersistence": true,
+  "pitchGovernorChecks": 131,
+  "scope": "Actual compiled plugin helpers and native prefix contracts, offline. No Unity UI or game launch."
+}

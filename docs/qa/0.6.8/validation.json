@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "candidateSha256": "0e31ada86353a093dc4504cac8d9f7d61e8fdd37818604fc6493d9f4ac3e9b35",
+  "unityNativeChecks": 105,
+  "nativePatchedMethods": 26,
+  "staticPatchContracts": 24,
+  "executableChecks": {
+    "FamilyChecks": 503,
+    "PitchChecks": 131,
+    "SurfaceChecks": 70
+  },
+  "allSevenResourcesMatch607": true,
+  "unchangedFlightAndGeometrySources": true,
+  "gameLaunched": false,
+  "steamLoginTested": false,
+  "fullFlightTested": false,
+  "scope": "Native in-memory Mirage fixture and inactive native geometry; real two-installation session remains unverified"
+}

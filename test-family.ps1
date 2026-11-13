@@ -29,12 +29,11 @@ $family|Write-Output
 $stock=Invoke-Check (Get-Process -Id $PID).Path @('-NoProfile','-File',(Join-Path $PSScriptRoot 'test-stock-option.ps1'),'-GamePath',$GamePath,'-PluginAssembly',$plugin,'-Compiler',$Compiler,'-TestRoot',(Join-Path $out 'stock-option'))
 $stock|Write-Output
 $familyChecks=[regex]::Match(($family -join "`n"),'FS20_FAMILY_INTEGRATION_PASS checks=(\d+)')
-$gateChecks=[regex]::Match(($stock -join "`n"),'SINGLEPLAYER_GATE_PASS checks=(\d+)')
-if(!$familyChecks.Success -or !$gateChecks.Success -or ($stock -join "`n") -notmatch 'PASS actual ConfigEntry ON/OFF/ON'){throw 'Verification result missing'}
+if(!$familyChecks.Success -or ($stock -join "`n") -notmatch 'PASS actual ConfigEntry ON/OFF/ON'){throw 'Verification result missing'}
 & $Compiler /nologo /langversion:latest /target:exe ('/out:'+(Join-Path $out 'PitchGovernorChecks.exe')) (Join-Path $PSScriptRoot 'tests/Fs20TPitchGovernor.cs')
 if($LASTEXITCODE -ne 0){throw 'Pitch governor test compilation failed'}
 $pitch=Invoke-Check (Join-Path $out 'PitchGovernorChecks.exe') @($plugin,$GamePath)
 $pitch|Write-Output
 $pitchChecks=[regex]::Match(($pitch -join "`n"),'FS20T_PITCH_GOVERNOR_PASS checks=(\d+)')
 if(!$pitchChecks.Success){throw 'Pitch governor checks failed'}
-[ordered]@{passed=$true;pluginSha256=(Get-FileHash -LiteralPath $plugin).Hash;familyChecks=[int]$familyChecks.Groups[1].Value;stockConfigOnOffPersistence=$true;singlePlayerChecks=[int]$gateChecks.Groups[1].Value;pitchGovernorChecks=[int]$pitchChecks.Groups[1].Value;scope='Actual compiled plugin helpers and native prefix contracts, offline. No Unity UI or game launch.'}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $out 'family-validation.json') -Encoding utf8
+[ordered]@{passed=$true;pluginSha256=(Get-FileHash -LiteralPath $plugin).Hash;familyChecks=[int]$familyChecks.Groups[1].Value;stockConfigOnOffPersistence=$true;pitchGovernorChecks=[int]$pitchChecks.Groups[1].Value;scope='Actual compiled plugin helpers and native prefix contracts, offline. No Unity UI or game launch.'}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $out 'family-validation.json') -Encoding utf8

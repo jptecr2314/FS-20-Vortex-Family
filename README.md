@@ -1,69 +1,24 @@
-# FS-20 Vortex Family 6.0.7
+# FS-20 Vortex Family 0.6.8 — multiplayer candidate
 
-Four FS-20 variants in one aircraft family, one selector and one plugin.
-Open the FS-20B tile to select A, B, C or T. Shared airframe stock can be
-enabled or disabled from the mod configuration menu.
+A/B/C/T only, based on published 6.0.7 for Nuclear Option 0.34.6 and Blueprinter 2.1.1. FS-20NA is excluded. Existing 6.1.x development and the installed plugin are preserved.
 
-| Aircraft | Configuration |
-|---|---|
-| FS-20A | Conventional-flight variant with the original wing outline and additional internal fuel. |
-| FS-20B | The game's original VTOL aircraft, retained in the family selector. |
-| FS-20C | Conventional-flight variant with wider wings and a tailhook. |
-| FS-20T | Integrated-delta VTOL variant, articulated slats, composite mass model and separately damageable wing sections. |
+Use a private lobby with the same 0.6.8 DLL, game build and mod set on the host and every client. Enable **Multiplayer → Enable matching modded sessions** on all participants. Hosts must explicitly enable the aircraft. A missing or mismatched installation is refused; this does not make the aircraft compatible with an unmodded server.
 
-The T is included by default. It no longer needs the old **Enable experimental
-variant** setting. Its aircraft key remains `JP_FS20_T`; saved aircraft and
-loadout references retain the same keys. The C and T include volumetric wing
-condensation, moving slat/elevon coverage and corrected nose-to-tail density
-motion in forward flight. Condensation uses native aerodynamic loads and an
-explicit assumed humidity setting; it does not change aircraft forces.
+The native game continues checking Steam, password and game build. A separate exchange checks plugin binaries and network definition order, prefab hashes and FS-20 part layouts. Matching third-party plugin DLLs do not prove matching third-party content or every configuration setting; install those identically too. This is a compatibility check, not an anti-cheat system.
 
-## Installation
+The host chooses shared airframe stock and C flap policy for the whole session. Changes take effect after restarting the lobby. Client settings on disk are preserved. Native controls, position, weapon release, damage, part detachment and supply replication remain in use. A bounded presentation stream carries measured C/T vapor loads, slats and arresting hook states at five updates per second to existing native observers. Remote copies do not run the FS-20 flight controller or arresting forces. Stale vapor samples expire.
 
-Requires a licensed Nuclear Option installation, BepInEx 5 and Blueprinter
-2.1.1. Target game version: 0.34.6. This is a single-player package.
+Keep only one VortexConventional DLL per profile. Backups belong outside BepInEx/plugins. The requested version is literally **0.6.8**: it sorts below 6.0.7/6.1.x, so do not expect a version-based mod manager to offer it as an automatic upgrade from those releases.
 
-1. Close the game and update your existing FS-20 Vortex Family installation.
-2. Import the ZIP into NOMM, or extract its `BepInEx` folder into the game.
-3. Keep one `VortexConventional.dll`. The old standalone Shared Airframes DLL
-   is superseded by the integrated stock controls.
-4. Start the game and check for `FS-20 Vortex Family 6.0.7` in the BepInEx log.
+See QA.md for what was actually verified and what remains unverified. No installation or publication is performed by the build script.
 
-The canonical plugin ID is `fs20vortexfamily`. Older configurations are copied
-only when the canonical configuration is absent. Previous settings are kept.
-The installation metadata can migrate from `br.japensou.nuclearoption.vortexctol`
-on startup; update the existing NOMM entry rather than installing a second copy.
+## Source and local verification
 
-## Inventory configuration
-
-With BepInEx Configuration Manager, open **F1 > FS-20 Vortex Family > Inventory
-> Shared airframe stock**. All four variants remain selectable in either mode.
-
-- Enabled: A/B/C/T consume a single pool. With 48 B airframes and no other
-  stock, taking any variant leaves 47 available to the family.
-- Disabled: each variant uses its native stock and ownership counters.
-
-Switching modes does not duplicate or redistribute existing aircraft. Existing
-preferences are retained. The obsolete T experimental-enable flag is ignored.
-
-## Source and validation
-
-Build from the source export with PowerShell 7:
+Build with PowerShell 7 and a licensed local game installation:
 
 ```powershell
-./build.ps1 -GamePath 'PATH_TO_NUCLEAR_OPTION'
-./test-family.ps1 -GamePath 'PATH_TO_NUCLEAR_OPTION'
+./build.ps1 -GamePath 'C:/Program Files (x86)/Steam/steamapps/common/Nuclear Option'
+./test-family.ps1 -GamePath 'C:/Program Files (x86)/Steam/steamapps/common/Nuclear Option'
 ```
 
-The build uses the ordered source/resource manifest in `build-spec.json`.
-Game libraries and the compiler are not distributed. `restore-compiler.ps1`
-downloads the pinned compiler and verifies its package hash when needed.
-See `QA.md` for the exact validation scope and inherited gameplay evidence.
-
-Multiplayer remains disabled while this aircraft plugin is enabled. The
-separate [NO Manual Tailhook](https://github.com/jptecr2314/NO-Manual-Tailhook)
-plugin remains optional and is not bundled.
-
-Author: **Jpgamer4045d**. Code license: MIT. AI assistance is declared in
-`AI_ASSISTANCE.md`. Game-derived assets retain their original ownership;
-see `THIRD_PARTY_NOTICES.md`. Not affiliated with Shockfront Studios.
+The build restores the pinned compiler when necessary; native game/Unity assemblies and dependencies are not distributed. The family script checks compiled family helpers, stock configuration persistence and the T pitch governor. It does not perform a multiplayer flight. The former five-hook single-player-only guard test belongs to earlier releases and is replaced by the network checks described in QA.md. Native Unity fixture source is in `tests/multiplayer/NativeBench.cs`; it needs the locally imported licensed Blueprinter authoring references. Machine-readable historical results for this binary are under `docs/qa/0.6.8/`.
