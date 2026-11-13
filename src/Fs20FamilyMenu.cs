@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    // The B tile opens native A/B/C variant tiles.
+    // The B tile opens the native A/B/C/T variant tiles.
     public sealed class Fs20FamilyMenu : MonoBehaviour
     {
         // Shared Airframes reads these fields by reflection.
@@ -55,7 +55,8 @@ namespace Japensou.NuclearOption.VortexConventional
             {
                 "JP_FS20_A",
                 "SmallFighter1",
-                "JP_FS20_CTOL"
+                "JP_FS20_CTOL",
+                "JP_FS20_T"
             }
 
             )
@@ -133,7 +134,7 @@ namespace Japensou.NuclearOption.VortexConventional
             };
             foreach (var model in models)
             {
-                // Keep the original B as launcher; reuse the native A/C buttons.
+                // Keep the original B as launcher; reuse the native A/C/T buttons.
                 var view = model == family ? Instantiate(model, panel, false) : model;
                 view.transform.SetParent(panel, false);
                 view.Initialize(menu, player, hover);

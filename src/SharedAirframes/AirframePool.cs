@@ -5,7 +5,7 @@ namespace Japensou.NuclearOption.SharedAirframes
 {
     internal static class AirframePool
     {
-        internal static bool IsFamily(string key) => key == "SmallFighter1" || key == "JP_FS20_A" || key == "JP_FS20_CTOL";
+        internal static bool IsFamily(string key) => key == "SmallFighter1" || key == "JP_FS20_A" || key == "JP_FS20_CTOL" || key == "JP_FS20_T";
         internal static bool Same(string a, string b) => a != null && b != null && (a == b || IsFamily(a) && IsFamily(b));
         internal static int Count(IEnumerable<int> counts)
         {

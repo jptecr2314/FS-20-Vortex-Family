@@ -1,29 +1,18 @@
-# FS-20 Vortex Family 0.5.10
+# FS-20 Vortex Family 6.0.7
 
-Changes the plugin/package ID to `fs20vortexfamily`. Aircraft, weapons,
-physics, shared-stock behavior and the single-player boundary remain as in
-0.5.8. This release does not include the separate multiplayer or T studies.
+- Include the FS-20T as a standard member of the A/B/C/T family in one DLL.
+- Retain the four-variant selector and configurable shared or separate stock.
+- Retire the old T experimental-enable gate without changing aircraft keys.
+- Include the latest C/T volumetric vapor, rear-panel/elevon coverage and
+  corrected density-advection direction from the 0.8.11 development build.
+- Replace the T's repeated pitch cut/rebuild near the flight envelope with a
+  continuous native-FBW rate reference. Retain immediate stick release and
+  hard protection for actual G/AoA exceedance; VTOL and manual input bypass it.
+- Retain the reviewed geometry, other flight paths, damage states, detachment
+  behavior and single-player boundary.
+- Use version 6.0.7 consistently in plugin and package metadata.
+- Preserve the canonical `fs20vortexfamily` ID and legacy configuration migration.
 
-## Updating an existing NOMM installation
-
-Update your existing FS-20 entry. Do not install a second copy from the new
-entry. The old catalog ID remains as an update bridge; it downloads the
-same 0.5.10 plugin. NOMM writes the old ID into its installation metadata,
-so the plugin migrates that metadata on its first enabled game launch.
-After closing the game, refresh NOMM to see `fs20vortexfamily`.
-
-Existing BepInEx settings are copied only if the new configuration does
-not exist. The old configuration is kept. Replaced NOMM metadata receives
-a backup alongside its original file. The migration touches only this
-plugin's ancestor metadata, never another mod or the catalog itself.
-If a file cannot be updated, an English warning is logged and the old
-catalog entry continues to provide the update. Disabled installations
-migrate when they are enabled and the game is next started.
-
-For a fresh installation, use the `fs20vortexfamily` catalog entry.
-Keep only one installed copy. The native aircraft/weapon definition keys
-are unchanged, preserving existing A/C mission and loadout references.
-
-This is still an experimental single-player release. Migration was checked
-against the NOMM source and compiled plugin metadata; the game was not
-launched for this identifier-only release. See QA.md for the precise scope.
+This is a complete family package. Do not install separate A/C/T aircraft
+DLLs alongside it. Publication and catalog acceptance are separate from
+local package preparation; see the release receipt for current delivery status.

@@ -32,6 +32,8 @@ namespace Japensou.NuclearOption.VortexConventional
             private static void Postfix(float __0, Transform ___transform,
                 Vector3 ___anglesRetracted, Vector3 ___anglesDeployed)
             {
+                var tSlat = ___transform == null ? null : ___transform.GetComponent<Fs20TSlat>();
+                if (tSlat != null) { tSlat.Deploy(__0); return; }
                 var hinge = ___transform == null ? null : ___transform.GetComponent<Fs20SlatHinge>();
                 if (hinge == null)
                     return;

@@ -435,27 +435,110 @@ inspected in the installed game assembly. The main/trial games are not
 launched or closed by this update; current gameplay acceptance stays with
 the author. No GitHub or NOMM publication is part of this local revision.
 
+## 0.5.9 — Private multiplayer candidate
 
-## 0.5.10 identifier migration
+The separate 0.5.9 profile uses the published A/B/C 0.5.8 sources. The public
+0.5.8 release and ongoing T work retain their current builds. Multiplayer is
+off by default. When enabled on all peers, the candidate adds a per-player
+compatibility exchange to the native authentication flow. The host supplies
+the shared-stock and flap settings for the session.
 
-Built from the published 0.5.8 source, with changes limited to plugin and
-Harmony IDs, the startup identity migration and distribution metadata/docs.
-No aircraft, weapon, saved definition key, physics or single-player guard
-implementation was changed. The newer T and multiplayer builds are excluded.
+The candidate compiled, and static inspection verified 17 hook contracts
+against Nuclear Option 0.34.6 and Mirage. The compiled protocol harness did
+not run because Windows App Control blocked it. The package README lists
+the remaining two-player checks. The candidate has not been installed or
+published.
 
-NOMM source commit 8786356fd9426c261bec6fed168f25c2f1fee815 identifies installed
-mods by meta.json.id and matches updates by that same catalog key. Its
-installer overwrites package metadata with the requested catalog ID.
-Accordingly, retaining the old entry is necessary: deleting or renaming it
-would strand installations that have not yet run the migration.
+## 2026-11-12 — Local FS-20C Penumbra catapult integration
 
-The build and static assembly checks verify the new plugin GUID, the old-ID
-incompatibility guard, migration before configuration bindings, unchanged
-native definition keys, unchanged authored resources and the retained
-single-player guard. The BepInEx constructor was inspected: it does not
-create a missing configuration file, so the startup copy precedes bindings.
-The install/update lifecycle is simulated separately using the inspected
-NOMM directory, metadata overwrite, enable/disable and version rules.
-These are offline checks; no live NOMM installation, game launch or Unity
-JSON call was exercised for this release. Previous test/gameplay evidence
-above remains historical evidence from the respective versions.
+The installed family plugin is 0.8.6; the development source is newer.
+Neither DLL was replaced. Added only `FS20C.catapults` beside the installed
+Aryx FS-41 Eclipse 1.1.9 module, using its documented external rule loader.
+The file maps `JP_FS20_CTOL` to the unchanged native FS-20B nose-wheel
+attachment and launch settings. B, A, T and other aircraft rules are untouched.
+
+Static inspection verified the native external loader, name-based rule
+lookup, native hangar availability checks, the installed family's C hangar
+insertion and an exact match of all seven launch/attachment fields to the
+native B rule. Installed file SHA256 matches the source; both aircraft and
+catapult DLL hashes were preserved. This is not a live selection or flight
+test. No game launch or GitHub/NOMM publication was performed.
+
+Sources/installer: `packaging/fs20-penumbra`,
+`tools/install_fs20_penumbra.ps1`, `tools/check_fs20_penumbra.ps1`.
+Evidence: `D:/Artifacts/fs20-penumbra/CONTRACT_CHECKS.json` and
+`D:/Artifacts/fs20-penumbra/INSTALLATION.json`.
+# 6.0.7 — unified A/B/C/T family
+
+The 6.0.7 integration includes the T by default in the same aircraft plugin,
+selector and configurable inventory pool as A/B/C. An old
+`FS-20T / Enable experimental variant = false` value no longer hides the T.
+The aircraft keys and saved references are unchanged.
+
+Current integration verification:
+
+- One BepInEx aircraft-family plugin: `fs20vortexfamily`, version `6.0.7`.
+- Unconditional T registration with separate failure handling, four selector
+  entries and T insertion into compatible FS-20 hangars.
+- 503 checks against the compiled family pool and four-tile layout, including
+  T-owned stock, cross-variant ownership, single-cell debits and canvas bounds.
+- Actual configuration ON/OFF/ON and persistence checks for shared stock.
+- 18 native-contract/single-player prefix checks, without opening sockets.
+- Legacy-ID incompatibility and configuration migration before config binding.
+- Exported-source build is byte-identical to the workspace candidate.
+- All authored geometry, paint and vapor shader resources match the 0.8.11
+  candidate. Damage, detachment, vapor and other aircraft flight paths retain
+  their implementation IL. The T pitch envelope is revised as described below;
+  the T factory changes only its descriptive text.
+
+Compiler-generated callback numbering changed when the obsolete field was
+removed. The binary comparison normalizes those generated identifiers and
+still compares callback implementations. Stock code changes only its Harmony
+patch ID to the already approved canonical identity.
+
+The T/C development builds have prior user gameplay feedback and the 0.8.11
+vapor correction passed 51 local renderer/state checks, including measured
+rendered flow direction. Those results belong to the respective versions and
+scopes. This 6.0.7 family/package integration is checked offline; no new game
+session, NOMM installation, catalog acceptance or publication is claimed here.
+
+Local release evidence: `assembly-checks.json` and `delivery.json` alongside
+the prepared ZIP. Re-run `test-family.ps1` against the exported build for the
+pool, configuration, layout and single-player checks.
+
+### T sustained-pull revision (12 November 2026)
+
+The former soft limiter repeatedly attenuated both pilot pull and the native
+pitch accumulator. The native loop then rebuilt its trim and hit the limit
+again. The revision continuously bounds the native pitch-rate reference using
+measured normal load, load rate, AoA, AoA rate and the body/gravity projection.
+It retains accumulated trim during soft limiting; actual overload or excess
+AoA still clears nose-up authority. The mass/EAS 9-to-11 G schedule and manual,
+VTOL and approach boundaries remain in place. This follows the general control
+principle of preserving consistent controller state under saturation; see
+[MathWorks' anti-windup reference](https://www.mathworks.com/help/simulink/slref/anti-windup-control-using-a-pid-controller.html).
+
+The headless Unity bench executes the actual native `FlyByWire.Filter` and
+production T controller against a reduced longitudinal plant using the
+hydrated T's NOAircraftTools force/moment grid. Across 26 cases at 85/120/220/320
+m/s, two fuel loads, initial climb/level/descent, deceleration and a timestep
+delta, no repeated pull cuts occurred in the six-second sustained-command
+window. The pre-fix DLL reproduced 9–11 cuts in 13 high-speed cases. Seven
+native-mode checks and 131 compiled-envelope contracts passed. The binary
+delta from pre-fix 6.0.7 is restricted to `Fs20TFlightController` and
+`Fs20TLoadEnvelope`; all seven embedded resources are identical.
+
+Airspeed is prescribed, with estimated actuator slew, inertia and pitch
+damping. This is not a full six-axis or live-game flight test. The worst
+hold-window load was 11.068 G; after stick release, one case briefly reached
+11.607 G with hard protection active for two 20 ms samples. The 11 G schedule
+does not guarantee an absolute instantaneous physical ceiling. High-AoA
+protection was checked with supplied states; the coupled cases peaked below
+15 degrees and do not establish near-stall flight behavior.
+
+Evidence: `fbw-revision/validation.json`, `final-run/t-pitch.json`, per-case CSV
+files and `comparison.png` next to the local release. No game was installed,
+opened, closed or controlled during this revision.
+
+The records below remain historical evidence for their named versions.
+

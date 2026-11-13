@@ -24,7 +24,7 @@ namespace Japensou.NuclearOption.SharedAirframes
 
         internal static ConfigEntry<bool> Configure(ConfigFile config)
         {
-            sharedStock = config.Bind("Inventory", "Shared airframe stock", true, "Share faction stock and owned airframes across FS-20A/B/C. Disable for separate native counters. " + "All three variants remain selectable. Existing stock is never duplicated or redistributed.");
+            sharedStock = config.Bind("Inventory", "Shared airframe stock", true, "Share faction stock and owned airframes across the available FS-20A/B/C/T variants. Disable for separate native counters. " + "Variants remain selectable. Existing stock is never duplicated or redistributed.");
             return sharedStock;
         }
 

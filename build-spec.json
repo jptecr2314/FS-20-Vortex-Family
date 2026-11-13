@@ -1,6 +1,6 @@
 {
   "repo": "FS-20-Vortex-Family",
-  "version": "0.5.10",
+  "version": "6.0.7",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
   "id": "fs20vortexfamily",
@@ -15,9 +15,11 @@
     "UnityEngine.CoreModule.dll",
     "UnityEngine.PhysicsModule.dll",
     "UnityEngine.ParticleSystemModule.dll",
+    "UnityEngine.AssetBundleModule.dll",
     "UnityEngine.AudioModule.dll",
     "UnityEngine.JSONSerializeModule.dll",
     "UnityEngine.IMGUIModule.dll",
+    "UnityEngine.ImageConversionModule.dll",
     "UniTask.dll",
     "UnityEngine.UIModule.dll",
     "UnityEngine.UI.dll",
@@ -26,8 +28,35 @@
   ],
   "sources": [
     "src/VortexConventionalPlugin.cs",
+    "src/Fs20IdentityMigration.cs",
     "src/Fs20Geometry.cs",
     "src/Fs20SlatHinge.cs",
+    "src/Fs20TAsset.cs",
+    "src/Fs20TGeometry.cs",
+    "src/Fs20TAirframe.cs",
+    "src/Fs20TMass.cs",
+    "src/Fs20TFlightPolicy.cs",
+    "src/Fs20TLoadEnvelope.cs",
+    "src/Fs20TStructure.cs",
+    "src/Fs20TFlightController.cs",
+    "src/Fs20TControlCalibration.cs",
+    "src/Fs20TPartPhysics.cs",
+    "src/Fs20THighLift.cs",
+    "src/Fs20TFlightDiagnostics.cs",
+    "src/Fs20TVapor.cs",
+    "src/Fs20VaporDriver.cs",
+    "src/Fs20TVaporPath.cs",
+    "src/Fs20VaporSheet.cs",
+    "src/Fs20VaporVolume.cs",
+    "src/Fs20VaporTrailing.cs",
+    "src/Fs20TVaporEnvelope.cs",
+    "src/Fs20TDamageProxy.cs",
+    "src/Fs20TDamageGate.cs",
+    "src/Fs20TNativeContacts.cs",
+    "src/Fs20TDamagePolicy.cs",
+    "src/Fs20TDamageSections.cs",
+    "src/Fs20TDeltaPaint.cs",
+    "src/Fs20TNativePaint.cs",
     "src/Fs20MeshIslands.cs",
     "src/Fs20VtolGeometry.cs",
     "src/Fs20VtolSpec.cs",
@@ -69,10 +98,29 @@
     "src/Fs20BaySupports.cs",
     "src/SharedAirframes/AirframePool.cs",
     "src/SharedAirframes/SharedAirframesPlugin.cs",
-    "src/Fs20SinglePlayer.cs",
-    "src/Fs20IdentityMigration.cs"
+    "src/Fs20SinglePlayer.cs"
   ],
   "resources": [
+    {
+      "path": "assets/fs20-vapor/Fs20Vapor.bundle",
+      "name": "Fs20Vapor.bundle"
+    },
+    {
+      "path": "assets/fs20t/Fs20TNativePaintUv.png",
+      "name": "Fs20TNativePaintUv.png"
+    },
+    {
+      "path": "assets/fs20t/Fs20TFinish.bin",
+      "name": "Fs20T.bin"
+    },
+    {
+      "path": "assets/fs20t/Fs20TFinish.png",
+      "name": "Fs20TDetail.png"
+    },
+    {
+      "path": "assets/fs20t/Fs20TFinishNormal.png",
+      "name": "Fs20TFinishNormal.png"
+    },
     {
       "path": "assets/fs20-internals/Fs20Internals.bin",
       "name": "Fs20Internals.bin"

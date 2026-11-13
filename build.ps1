@@ -1,10 +1,14 @@
 param(
  [string]$GamePath=$env:NUCLEAR_OPTION_PATH,
- [string]$VortexAssembly
+ [string]$VortexAssembly,
+ [string]$Compiler
 )
 $ErrorActionPreference='Stop'
 if(!$GamePath){$GamePath='C:\Program Files (x86)\Steam\steamapps\common\Nuclear Option'}
-& (Join-Path $PSScriptRoot 'restore-compiler.ps1')
+if(!$Compiler){
+ & (Join-Path $PSScriptRoot 'restore-compiler.ps1')
+ $Compiler=Join-Path $PSScriptRoot '.deps/compiler/tasks/net472/csc.exe'
+}
 $spec=Get-Content (Join-Path $PSScriptRoot 'build-spec.json') -Raw|ConvertFrom-Json
 $managed=Join-Path $GamePath 'NuclearOption_Data/Managed'
 $core=Join-Path $GamePath 'BepInEx/core'
@@ -25,9 +29,9 @@ foreach($resource in $spec.resources){
  if(!(Test-Path -LiteralPath $file)){throw "Authored geometry resource missing: $file"}
  $argsList+='/resource:'+$file+','+$resource.name
 }
-& (Join-Path $PSScriptRoot '.deps/compiler/tasks/net472/csc.exe') @argsList
+& $Compiler @argsList
 if($LASTEXITCODE -ne 0){throw 'Build failed'}
-foreach($name in @('README.md','THIRD_PARTY_NOTICES.md','AI_ASSISTANCE.md','CHANGELOG.md','meta.json')){
+foreach($name in @('README.md','THIRD_PARTY_NOTICES.md','AI_ASSISTANCE.md','CHANGELOG.md','RELEASE_NOTES.md','QA.md','meta.json')){
  Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $out -Force
 }
 if(Test-Path (Join-Path $PSScriptRoot 'LICENSE')){Copy-Item (Join-Path $PSScriptRoot 'LICENSE') $out -Force}

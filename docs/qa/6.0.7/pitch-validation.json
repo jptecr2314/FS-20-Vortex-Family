@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "sha256": "31C82924DC8115106349FFA1A699A7C2769DC62CA8C408276F0D6E41BD215CBF",
+  "baselineSha256": "65C63A005E7D1B5C1F144A45BBE2E56AFF4E64E5790CD0E422820173AAED59D2",
+  "changedTypes": [
+    "Fs20TLoadEnvelope",
+    "Fs20TFlightController"
+  ],
+  "preservedAssets": 7,
+  "baselineHuntingCases": 13,
+  "baselineCutsPerSixSeconds": "9-11",
+  "candidateCases": 26,
+  "candidateCutsPerSixSeconds": 0,
+  "nativeModeChecks": 7,
+  "peakGDuringHold": 11.0679779,
+  "worstTenSecondTransient": {
+    "case": "v320-path-40-fuel0_2-dt0_02",
+    "time": 8.059995,
+    "g": 11.6068325,
+    "hard": 1
+  },
+  "hardFramesFullRun": 2,
+  "scope": "Native FlyByWire.Filter plus production T PrepareControls. Reduced longitudinal plant: NOAircraftTools force/moment grid from actual hydrated T, point-flow pitch damping and point-mass inertia. Airspeed is prescribed. Engine energy, full six-axis coupling, pilot physiology and live-flight behavior are outside this fixture.",
+  "limitations": "Reduced longitudinal bench with prescribed airspeed, estimated actuator/inertia/damping. No game flight. A short 11.61 G release transient remains; hard protection activates. The 11 G schedule is not an absolute instantaneous physical cap."
+}

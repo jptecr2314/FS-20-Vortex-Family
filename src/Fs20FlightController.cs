@@ -85,12 +85,15 @@ namespace Japensou.NuclearOption.VortexConventional
             Set(flyByWire, "gLimitPositive", Fs20FlightEnvelope.MaximumG);
             Set(flyByWire, "cornerSpeed", 140f);
             Set(flyByWire, "takeoffSpeed", 42f);
-            Set(flyByWire, "maxPitchAngularVel", 0.85f);
-            Set(flyByWire, "alphaLimiter", 26f);
+            Set(flyByWire, "maxPitchAngularVel", Fs20FlightEnvelope.CombatPitchRate);
+            Set(flyByWire, "alphaLimiter", Fs20FlightEnvelope.MaximumAlpha);
             Set(flyByWire, "alphaLimiterStrength", 0.12f);
-            Set(flyByWire, "dFactorFast", 1.2f);
-            // Wider wings need controlled roll response as dynamic pressure rises.
-            Set(flyByWire, "maxRollAngularVel", 4.5f);
+            Set(flyByWire, "pFactorFast", 9.2f);
+            Set(flyByWire, "dFactorFast", 1.05f);
+            Set(flyByWire, "maxRollAngularVel", Fs20FlightEnvelope.CombatRollRate);
+            Set(flyByWire, "rollTightness", .75f);
+            Set(flyByWire, "rollTrimRate", .02f);
+            Set(flyByWire, "rollTrimLimit", .12f);
             var hover = Field(typeof(ControlsFilter), "autoHover").GetValue(filter);
             Set(hover, "Enabled", false);
             foreach (var surface in root.GetComponentsInChildren<ControlSurface>(true))
@@ -147,8 +150,11 @@ namespace Japensou.NuclearOption.VortexConventional
         private readonly Fs20FlightEnvelope envelope = new Fs20FlightEnvelope();
         private readonly Fs20LandingEnvelope landing = new Fs20LandingEnvelope();
         private static readonly FieldInfo GLimit = Fs20Tuning.Field(typeof(ControlsFilter.FlyByWire), "gLimitPositive");
+        private static readonly FieldInfo Cockpit = Fs20Tuning.Field(typeof(Aircraft), "cockpit");
+        private static readonly FieldInfo PitchTrim = Fs20Tuning.Field(typeof(ControlsFilter.FlyByWire), "pitchAdjuster");
         internal float FlapDegrees { get; private set; }
         internal float Airspeed { get; private set; }
+        internal float EquivalentAirspeed { get; private set; }
         internal float EffectiveGLimit => envelope.LimitG;
 
         private void Awake()
@@ -159,12 +165,16 @@ namespace Japensou.NuclearOption.VortexConventional
 
         internal void Sample()
         {
-            if (aircraft == null || aircraft.rb == null)
+            if(aircraft==null)return;
+            var cockpit=(UnitPart)Cockpit.GetValue(aircraft);
+            var body=cockpit!=null && cockpit.rb!=null ? cockpit.rb : aircraft.rb;
+            if (body == null)
                 return;
-            Airspeed = Mathf.Max(0f, aircraft.speed);
-            Vector3 local = aircraft.transform.InverseTransformDirection(aircraft.rb.velocity - (Vector3)WindVelocity.GetValue(aircraft));
+            Vector3 local = Quaternion.Inverse(body.rotation)*(body.velocity - (Vector3)WindVelocity.GetValue(aircraft));
+            Airspeed = local.magnitude;
+            EquivalentAirspeed=Fs20FlightEnvelope.EquivalentSpeed(Airspeed,aircraft.airDensity);
             float alpha = -Mathf.Atan2(local.y, Mathf.Max(1f, local.z)) * Mathf.Rad2Deg;
-            float lowSpeed = 1f - Mathf.InverseLerp(100f, 190f, Airspeed);
+            float lowSpeed = 1f - Mathf.InverseLerp(100f, 190f, EquivalentAirspeed);
             float requested;
             switch (VortexConventionalPlugin.FlapMode)
             {
@@ -194,14 +204,19 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             if (aircraft == null || body == null)
                 return;
-            Vector3 airflow = aircraft.transform.InverseTransformDirection(body.velocity - (Vector3)WindVelocity.GetValue(aircraft));
+            Vector3 airflow = Quaternion.Inverse(body.rotation)*(body.velocity - (Vector3)WindVelocity.GetValue(aircraft));
+            Airspeed=airflow.magnitude;
+            EquivalentAirspeed=Fs20FlightEnvelope.EquivalentSpeed(Airspeed,aircraft.airDensity);
             float alpha = -Mathf.Atan2(airflow.y, Mathf.Max(1f, airflow.z)) * Mathf.Rad2Deg;
-            // Project native acceleration in G onto the aircraft normal.
-            float normalG = Vector3.Dot(aircraft.accel, aircraft.transform.up);
-            envelope.Step(inputs.pitch, inputs.roll, aircraft.speed, aircraft.airDensity, aircraft.GetMass(), alpha, normalG, aircraft.gearDeployed, assisted, Time.fixedDeltaTime);
+            float normalG = Vector3.Dot(aircraft.accel-Physics.gravity/9.81f, body.rotation*Vector3.up);
+            envelope.Step(inputs.pitch, inputs.roll, Airspeed, aircraft.airDensity, aircraft.GetMass(), alpha, normalG, aircraft.gearDeployed, assisted, Time.fixedDeltaTime);
             landing.Step(envelope.Pitch, envelope.Roll, aircraft.speed, aircraft.gearDeployed, (bool)Fs20Tuning.Airborne.GetValue(aircraft), assisted, Time.fixedDeltaTime);
             GLimit.SetValue(filter.GetFlyByWire(), Mathf.Min(envelope.LimitG, Mathf.Lerp(11f, 4f, landing.Blend)));
-            Fs20Tuning.LandingSchedule(filter, landing, .85f, 4.5f, 26f);
+            Fs20Tuning.LandingSchedule(filter, landing, Fs20FlightEnvelope.CombatPitchRate, Fs20FlightEnvelope.CombatRollRate, Fs20FlightEnvelope.MaximumAlpha);
+            if(assisted && envelope.PullReserve<1f){
+                var fbw=filter.GetFlyByWire();float trim=(float)PitchTrim.GetValue(fbw);
+                if(trim<0f)PitchTrim.SetValue(fbw,trim*envelope.PullReserve);
+            }
             inputs.pitch = landing.Pitch;
             inputs.roll = landing.Roll;
         }
@@ -209,17 +224,23 @@ namespace Japensou.NuclearOption.VortexConventional
         [HarmonyPatch(typeof(ControlsFilter), "Filter")]
         internal static class PrepareEnvelope
         {
-            private static void Prefix(ControlsFilter __instance, ControlInputs __0, Rigidbody __2, bool __4, Aircraft ___aircraft, float ___minSpeed, float ___minAlt)
+            private static void Prefix(ControlsFilter __instance, ControlInputs __0, Vector3 __1, Rigidbody __2, bool __4, Aircraft ___aircraft, float ___minSpeed, float ___minAlt)
             {
                 if (___aircraft == null)
                     return;
+                var tController = ___aircraft.GetComponent<Fs20TFlightController>();
+                if (tController != null)
+                {
+                    tController.PrepareControls(__instance, __0, __1, __2, __4 && __instance.GetFlyByWire().Enabled, ___minSpeed, ___minAlt);
+                    return;
+                }
                 var controller = ___aircraft.GetComponent<Fs20FlightController>();
                 var aController = controller == null ? ___aircraft.GetComponent<Fs20AFlightController>() : null;
                 if (controller == null && aController == null)
                     return;
                 bool active = __4 && __instance.GetFlyByWire().Enabled && ___aircraft.speed >= ___minSpeed;
                 if (controller != null)
-                    controller.PrepareControls(__instance, __0, __2, active);
+                    controller.PrepareControls(__instance, __0, __2, active && ___aircraft.radarAlt>=___minAlt);
                 else
                     aController.PrepareControls(__instance, __0, __2, active);
             }
@@ -245,6 +266,22 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             private static void Postfix(ControlSurface __instance, ref PtrAllocation<ControlSurfaceFields> ___JobFields)
             {
+                var deltaElevon = __instance.GetComponent<Fs20TElevon>();
+                if (deltaElevon != null)
+                {
+                    ref ControlSurfaceFields delta = ref ___JobFields.Ref();
+                    if (!delta.IsDetached)
+                    {
+                        float deflection = Fs20TFlightPolicy.ElevonAngle(delta.controlInputs.pitch, delta.controlInputs.roll, deltaElevon.Side, deltaElevon.Outer);
+                        delta.pitchRange = Fs20TFlightPolicy.ElevonTravel;
+                        delta.rollRange = 0f;
+                        delta.yawRange = 0f;
+                        delta.currentRoll = 0f;
+                        delta.currentYaw = 0f;
+                        delta.controlInputs.pitch = deflection / Fs20TFlightPolicy.ElevonTravel;
+                    }
+                    return;
+                }
                 var marker = __instance.GetComponent<Fs20Elevon>();
                 if (marker == null)
                     return;
@@ -255,11 +292,9 @@ namespace Japensou.NuclearOption.VortexConventional
                 if (fields.IsDetached)
                     return;
                 var controller = marker.Controller;
-                float gain = Mathf.Lerp(1f, 0.65f, Mathf.InverseLerp(140f, 300f, controller.Airspeed));
-                float command = marker.PitchRange * fields.controlInputs.pitch * gain + marker.RollRange * fields.controlInputs.roll * gain;
-                // Reduce flap bias under stick demand to stay within surface travel.
-                float reserve = 1f - 0.8f * Mathf.Clamp01(Mathf.Abs(command) / 40f);
-                float angle = Mathf.Clamp(command - controller.FlapDegrees * marker.FlapFraction * reserve, -40f, 40f);
+                float gain=Fs20FlightEnvelope.SurfaceGain(controller.EquivalentAirspeed);
+                float angle=Fs20FlightEnvelope.ElevonAngle(fields.controlInputs.pitch,fields.controlInputs.roll,
+                    marker.PitchRange,marker.RollRange,gain,controller.FlapDegrees*marker.FlapFraction);
                 fields.pitchRange = 40f;
                 fields.rollRange = 0f;
                 fields.yawRange = 0f;

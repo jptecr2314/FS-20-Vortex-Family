@@ -1,9 +1,12 @@
 # Third-party dependencies and asset boundary
 
-This package contains the FS-20 plugin author's code only. It does not include
-Nuclear Option assemblies, extracted meshes/textures/icons, Blender references,
-Unity libraries, BepInEx, Harmony, Blueprinter or the compiler toolchain.
-Runtime copies and modifications operate on assets from the user's installed game.
+This package includes the author's code, authored vapor shader and modified
+FS-20 geometry/UV resources used by the integrated T and internal surfaces.
+Game-derived geometry and paint references retain Shockfront Studios' original
+rights; the MIT license covers the author's contributions only. A licensed
+game installation supplies the remaining runtime assets.
+No Nuclear Option/Unity assemblies, Blender references, BepInEx, Harmony,
+Blueprinter or compiler toolchain are distributed.
 No ownership or redistribution permission over those game assets is asserted.
 
 - Nuclear Option and its installed content: Shockfront Studios, original terms.

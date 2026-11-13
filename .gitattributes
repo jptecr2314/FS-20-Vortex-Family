@@ -3,3 +3,7 @@
 *.ps1 text eol=lf
 *.json text eol=lf
 assets/fs20-internals/*.bin binary
+
+*.bin binary
+*.bundle binary
+*.png binary

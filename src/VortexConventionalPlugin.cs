@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.5.10")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "6.0.7")]
     [BepInDependency("com.nikkorap.blueprinter")]
     [BepInIncompatibility(Fs20IdentityMigration.PreviousId)]
     [BepInIncompatibility("br.japensou.nuclearoption.sharedairframes")]
@@ -30,12 +30,19 @@ namespace Japensou.NuclearOption.VortexConventional
         private AircraftDefinition original;
         private AircraftDefinition variant;
         private AircraftDefinition variantA;
+        private AircraftDefinition variantT;
         private Harmony harmony;
         private ConfigEntry<Fs20FlapMode> flapMode;
         private ConfigEntry<bool> sharedStock;
+        private ConfigEntry<bool> tDiagnostics;
+        private ConfigEntry<bool> bDiagnostics;
+        private ConfigEntry<float> vaporHumidity;
         private bool refreshInventory;
+        internal static float VaporHumidity => instance==null || instance.vaporHumidity==null ? .85f : instance.vaporHumidity.Value/100f;
         internal static Fs20FlapMode FlapMode => instance == null ? Fs20FlapMode.Auto : instance.flapMode.Value;
         internal static void ReportAssetState(string message) => instance?.Logger.LogInfo(message);
+        internal static bool RecordTDiagnostics => instance != null && instance.tDiagnostics != null && instance.tDiagnostics.Value;
+        internal static bool RecordBDiagnostics => instance != null && instance.bDiagnostics != null && instance.bDiagnostics.Value;
 
         private void Awake()
         {
@@ -43,7 +50,11 @@ namespace Japensou.NuclearOption.VortexConventional
             instance = this;
             sharedStock = SharedAirframeStock.Configure(Config);
             sharedStock.SettingChanged += OnStockSettingChanged;
+            tDiagnostics = Config.Bind("FS-20T", "Record flight diagnostics", false, "Opt-in debugging: record the local FS-20T forces, moments and controls to BepInEx/FS20T-flight at 10 Hz for up to 120 seconds per aircraft. Disk recording adds overhead; leave disabled for normal play.");
+            bDiagnostics = Config.Bind("FS-20T", "Record baseline B diagnostics", false, "Also record the local stock FS-20B for comparison, without changing its physics or controls.");
             flapMode = Config.Bind("FS-20C", "Flap mode", Fs20FlapMode.Auto, "Auto schedules takeoff, approach and combat flaps. Other modes override the schedule; high-speed retraction stays active.");
+            vaporHumidity=Config.Bind("Vapor", "Assumed relative humidity percent",85f,
+                new ConfigDescription("Ambient humidity for FS-20C/T condensation. The game exposes no humidity measurement; ISA temperature and this explicit assumption are used with native aerodynamic forces. Does not change flight physics.",new AcceptableValueRange<float>(0f,100f)));
             var runner = AccessTools.TypeByName("Blueprinter.PatchRunner");
             var apply = runner == null ? null : AccessTools.Method(runner, "ApplyAllOps");
             var hangarAwake = AccessTools.Method(typeof(Hangar), "Awake");
@@ -71,7 +82,18 @@ namespace Japensou.NuclearOption.VortexConventional
             harmony.PatchAll(typeof(Fs20FlightController.PrepareEnvelope));
             harmony.PatchAll(typeof(Fs20FlightController.ElevonJob));
             harmony.PatchAll(typeof(Fs20SlatHinge.AnimatePatch));
+            harmony.PatchAll(typeof(Fs20TDamageProxy.FragmentScope));
+            harmony.PatchAll(typeof(Fs20TDamageProxy.ShockScope));
+            harmony.PatchAll(typeof(Fs20TPartPhysics.CreateBody));
+            harmony.PatchAll(typeof(Fs20TPartPhysics.CreateJoints));
+            harmony.PatchAll(typeof(Fs20TPartPhysics.SimpleBody));
+            harmony.PatchAll(typeof(Fs20TPartPhysics.ComplexBody));
+            harmony.PatchAll(typeof(Fs20TPartPhysics.PayloadMass));
+            harmony.PatchAll(typeof(Fs20TPartPhysics.PointVelocity));
+            harmony.PatchAll(typeof(Fs20TPartPhysics.ApplyMoment));
+            harmony.PatchAll(typeof(Fs20TFlightDiagnostics.BaselineInputs));
             harmony.PatchAll(typeof(VtolGauge));
+            harmony.PatchAll(typeof(VtolGaugeBinding));
             harmony.PatchAll(typeof(Fs20FamilyMenu.InitializePatch));
             harmony.PatchAll(typeof(Fs20FamilyMenu.RefreshPatch));
             harmony.PatchAll(typeof(Fs20HookFairing.BayInterlock));
@@ -85,6 +107,10 @@ namespace Japensou.NuclearOption.VortexConventional
             harmony.PatchAll(typeof(Fs20BayLoadout.Spawn));
             harmony.PatchAll(typeof(Fs20BayLoadout.Saved));
             harmony.PatchAll(typeof(Fs20ExteriorPaint.LiveryChanged));
+            harmony.PatchAll(typeof(Fs20TDeltaPaint.LiveryChanged));
+            harmony.PatchAll(typeof(Fs20VaporDriver.Activate));
+            harmony.PatchAll(typeof(Fs20VaporDriver.Update));
+            harmony.PatchAll(typeof(Fs20VaporDriver.ReadLoads));
             harmony.PatchAll(typeof(Fs20ExteriorPaint.PartLiveryChanged));
             SharedAirframeStock.Enable(Logger);
         }
@@ -132,6 +158,25 @@ namespace Japensou.NuclearOption.VortexConventional
             {
                 instance.Logger.LogError("FS-20A registration failed: " + error);
             }
+            try
+            {
+                instance.RegisterT(__0);
+            }
+            catch (Exception error)
+            {
+                instance.Logger.LogError("FS-20T registration failed; A/B/C remain available: " + error);
+            }
+        }
+
+        private void RegisterT(Encyclopedia encyclopedia)
+        {
+            if (variantT != null || encyclopedia == null || Encyclopedia.Lookup == null || encyclopedia.IndexLookup == null) return;
+            if (original == null) original = encyclopedia.aircraft.FirstOrDefault(d => d != null && d.jsonKey == StockKey);
+            if (original == null) throw new InvalidOperationException("FS-20T donor unavailable.");
+            variantT = Fs20TAirframe.Register(encyclopedia, original);
+            try { Fs20TVapor.Install(variantT.unitPrefab.transform); }
+            catch (Exception error) { Logger.LogError("FS-20T vapor setup failed: " + error); }
+            foreach (var hangar in Resources.FindObjectsOfTypeAll<Hangar>()) AddToHangar(hangar);
         }
 
         private void RegisterA(Encyclopedia encyclopedia)
@@ -251,8 +296,9 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             try
             {
-                Fs20ManeuverVapor.Install(definition.unitPrefab.transform, extendedWing);
-                Logger.LogInfo(definition.code + " maneuver vapor template configured: 4 layers, native material, structural owners bound.");
+                if(extendedWing)Fs20TVapor.InstallConventional(definition.unitPrefab.transform);
+                else Fs20ManeuverVapor.Install(definition.unitPrefab.transform,false);
+                Logger.LogInfo(definition.code + " maneuver vapor configured; native lifecycle driver for C, structural owners bound.");
             }
             catch (Exception error)
             {
@@ -275,15 +321,29 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             private static bool Prefix(NozzleGauge __instance)
             {
-                if (__instance.GetComponent<Fs20HiddenGauge>() != null)
-                    return false;
                 if (!GameManager.GetLocalAircraft(out var local) || local == null || (local.GetComponent<Fs20FlightController>() == null && local.GetComponent<Fs20ConventionalAirframe>() == null))
                     return true;
                 // HUDAppManager retains serialized references to these widgets.
                 // Hide the VTOL gauge while preserving the manager's app list.
-                __instance.gameObject.AddComponent<Fs20HiddenGauge>();
+                if (__instance.GetComponent<Fs20HiddenGauge>() == null)
+                    __instance.gameObject.AddComponent<Fs20HiddenGauge>();
                 __instance.gameObject.SetActive(false);
                 return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(NozzleGauge), "Initialize")]
+        private static class VtolGaugeBinding
+        {
+            private static void Postfix(NozzleGauge __instance, Aircraft __0, string ___sourceName, ref INozzleGauge ___system)
+            {
+                if (___sourceName != StockKey || __0 == null || __0.GetComponent<Fs20TFlightController>() == null)
+                    return;
+
+                // The native source-name lookup expects the original B prefab name.
+                ___system = __0.GetComponent<SwivelDuctSystem>();
+                if (__instance.GetComponent<Fs20HiddenGauge>() != null)
+                    __instance.gameObject.SetActive(true);
             }
         }
 
@@ -350,6 +410,8 @@ namespace Japensou.NuclearOption.VortexConventional
             var updated = available.ToList();
             if (variant != null && !updated.Contains(variant))
                 updated.Add(variant);
+            if (variantT != null && !updated.Contains(variantT))
+                updated.Add(variantT);
             if (variantA != null && !updated.Contains(variantA) && !(hangar.attachedUnit is Ship) && hangar.GetComponentInParent<Ship>() == null)
                 updated.Add(variantA);
             if (updated.Count != available.Length)
