@@ -109,6 +109,7 @@ namespace Japensou.NuclearOption.VortexConventional
             {
                 var paint = ___aircraft == null ? null : ___aircraft.GetComponent<Fs20ExteriorPaint>();
                 if (paint != null) { paint.Refresh(); paint.QueueRefresh(); }
+                ___aircraft?.GetComponent<Fs20NANightPaint>()?.Queue();
             }
         }
 
@@ -122,6 +123,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 var owner = __instance.parentUnit;
                 var paint = owner == null ? null : owner.GetComponent<Fs20ExteriorPaint>();
                 if (paint != null) paint.QueueRefresh();
+                owner?.GetComponent<Fs20NANightPaint>()?.Queue();
             }
         }
     }

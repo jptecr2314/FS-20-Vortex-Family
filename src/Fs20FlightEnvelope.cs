@@ -18,9 +18,8 @@ namespace Japensou.NuclearOption.VortexConventional
         internal const float CombatRollRate = 6.4f;
         internal const float MaximumAlpha = 28f;
 
-        private float pullDemand;
-        private float previousG, loadRate;
-        private bool sampled;
+        private readonly Fs20PitchGovernor governor = new Fs20PitchGovernor();
+        internal bool HardProtection => governor.HardProtection;
         internal static float EquivalentSpeed(float speed,float density) =>
             Math.Max(0f,speed)*(float)Math.Sqrt(Math.Max(0f,density)/1.225f);
         internal static float SurfaceGain(float equivalentSpeed) =>
@@ -42,7 +41,8 @@ namespace Japensou.NuclearOption.VortexConventional
             return Math.Max(1f, Math.Min(gearDown ? BaselineG : MaximumG, Math.Min(speedLimit, forceLimit)));
         }
 
-        internal void Step(float pitch, float roll, float speed, float density, float mass, float alpha, float normalG, bool gearDown, bool assisted, float dt)
+        internal void Step(float pitch, float roll, float speed, float density, float mass, float alpha, float normalG, bool gearDown, bool assisted, float dt,
+            float nativeRatePerG = 0f, float pitchRateUp = 0f, float gravityNormalG = 1f, float approachBlend = 0f)
         {
             if (!assisted)
             {
@@ -50,8 +50,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 Pitch = pitch;
                 Roll = roll;
                 FlapScale = 1f;
-                pullDemand = 0f;
-                PullReserve=1f;loadRate=0f;sampled=false;previousG=normalG;
+                PullReserve=1f; governor.Reset();
                 return;
             }
 
@@ -60,14 +59,12 @@ namespace Japensou.NuclearOption.VortexConventional
             // Ramp authority up; apply reductions and stick release immediately.
             LimitG = Math.Min(target, LimitG + 2f * dt);
             float requested = Math.Max(0f, Math.Min(1f, -pitch));
-            float measuredRate=sampled && dt>0f ? Math.Max(-60f,Math.Min(60f,(normalG-previousG)/dt)) : 0f;
-            loadRate+=(measuredRate-loadRate)*dt/(.1f+dt);previousG=normalG;sampled=true;
-            float predicted=normalG+Math.Max(0f,loadRate)*.1f;
             float alphaReserve = 1f - Smooth((alpha - 22f) / (MaximumAlpha-22f));
-            float overloadReserve = 1f - Smooth((predicted - (LimitG-.2f)) / .55f);
-            PullReserve=Math.Min(alphaReserve,overloadReserve);
-            pullDemand = Math.Min(requested * PullReserve, pullDemand + 5f * dt);
-            Pitch = pitch >= 0f ? pitch * Math.Min(1f, BaselineG / LimitG) : -pullDemand;
+            float ceiling = Math.Min(LimitG, 11f - 7f * Math.Max(0f, Math.Min(1f, approachBlend)));
+            float alphaLimit = MaximumAlpha + (18f - MaximumAlpha) * Math.Max(0f, Math.Min(1f, approachBlend));
+            Pitch = governor.Step(pitch, speed, normalG, alpha, ceiling, alphaLimit, dt,
+                nativeRatePerG > 0f ? nativeRatePerG : 9.81f / Math.Max(30f, speed), pitchRateUp, gravityNormalG);
+            PullReserve = governor.PullReserve;
             Roll = roll * (.8f + .2f * alphaReserve);
             float load = Math.Max(requested, Smooth((normalG - 7f) / 4f));
             FlapScale = gearDown ? 1f : 1f - 0.75f * Smooth(load);
@@ -78,5 +75,49 @@ namespace Japensou.NuclearOption.VortexConventional
             float x = Math.Max(0f, Math.Min(1f, value));
             return x * x * (3f - 2f * x);
         }
+    }
+
+    // Shared A/C rate-reference governor. A soft limit retains the native trim needed
+    // to sustain the turn; it must not repeatedly command zero rate or erase trim.
+    internal sealed class Fs20PitchGovernor
+    {
+        internal bool HardProtection { get; private set; }
+        internal float PullReserve { get; private set; } = 1f;
+        private float pull, previousG, previousAlpha, loadRate, alphaRate;
+        private bool sampled;
+        internal void Reset()
+        {
+            pull = loadRate = alphaRate = 0f; sampled = false;
+            HardProtection = false; PullReserve = 1f;
+        }
+        internal float Step(float pitch, float speed, float normalG, float alpha, float ceiling,
+            float maxAlpha, float dt, float nativeRatePerG, float pitchRateUp, float gravityNormalG)
+        {
+            dt = Math.Max(0f, Math.Min(.1f, dt));
+            if (dt == 0f) return pitch;
+            float dg = sampled ? Clamp((normalG - previousG) / dt, -60f, 60f) : 0f;
+            float da = sampled ? Clamp((alpha - previousAlpha) / dt, -120f, 120f) : 0f;
+            loadRate += (dg - loadRate) * dt / (.12f + dt);
+            alphaRate += (da - alphaRate) * dt / (.08f + dt);
+            previousG = normalG; previousAlpha = alpha; sampled = true;
+            HardProtection = normalG >= ceiling + .5f || alpha >= maxAlpha + .5f;
+            float request = Clamp(-pitch, 0f, 1f);
+            float fullRate = Math.Max(.001f, nativeRatePerG * ceiling);
+            float gRate = (ceiling - gravityNormalG - .5f * (normalG - ceiling) -
+                .2f * Math.Max(0f, loadRate)) * 9.81f / Math.Max(30f, speed);
+            const float radians = (float)(Math.PI / 180d);
+            float trajectoryRate = pitchRateUp - alphaRate * radians;
+            float alphaCeiling = trajectoryRate + (maxAlpha - alpha - .1f * Math.Max(0f, alphaRate)) * 2f * radians;
+            float proximity = Clamp((alpha + .1f * Math.Max(0f, alphaRate) - (maxAlpha - 8f)) / 4f, 0f, 1f);
+            proximity = proximity * proximity * (3f - 2f * proximity);
+            float alphaAllowed = request + (Clamp(alphaCeiling / fullRate, 0f, request) - request) * proximity;
+            float allowed = Math.Min(Clamp(gRate / fullRate, 0f, request), alphaAllowed);
+            if (HardProtection || request == 0f) pull = 0f;
+            else pull += Clamp(allowed - pull, -6f * dt, 3f * dt);
+            pull = Clamp(pull, 0f, request);
+            PullReserve = request > .001f ? pull / request : 1f;
+            return pitch >= 0f ? pitch * Math.Min(1f, 9f / ceiling) : -pull;
+        }
+        private static float Clamp(float x, float lo, float hi) => Math.Max(lo, Math.Min(hi, x));
     }
 }

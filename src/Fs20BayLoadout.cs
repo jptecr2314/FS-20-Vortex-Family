@@ -42,7 +42,7 @@ namespace Japensou.NuclearOption.VortexConventional
             var point = set?.hardpoints.FirstOrDefault()?.transform;
             var aircraft = point == null ? null : point.GetComponentInParent<Aircraft>(true);
             return aircraft != null && aircraft.definition != null &&
-                (aircraft.definition.jsonKey == "JP_FS20_CTOL" || aircraft.definition.jsonKey == Fs20AirframeA.Key)
+                (aircraft.definition.jsonKey == "JP_FS20_CTOL" || aircraft.definition.jsonKey == Fs20AirframeA.Key || aircraft.definition.jsonKey == Fs20NAAirframe.Key)
                 ? aircraft.weaponManager : null;
         }
 

@@ -12,15 +12,17 @@ namespace Japensou.NuclearOption.VortexConventional
         internal float Pitch { get; private set; }
         internal float Roll { get; private set; }
 
-        private float pull;
-        internal void Step(float pitch, float roll, float mass, float alpha, float normalG, bool assisted, float dt)
+        private readonly Fs20PitchGovernor governor = new Fs20PitchGovernor();
+        internal bool HardProtection => governor.HardProtection;
+        internal void Step(float pitch, float roll, float mass, float alpha, float normalG, bool assisted, float dt,
+            float speed = 200f, float nativeRatePerG = 0f, float pitchRateUp = 0f, float gravityNormalG = 1f, float approachBlend = 0f)
         {
             if (!assisted)
             {
                 LimitG = BaselineG;
                 Pitch = pitch;
                 Roll = roll;
-                pull = 0;
+                governor.Reset();
                 return;
             }
 
@@ -28,10 +30,10 @@ namespace Japensou.NuclearOption.VortexConventional
             float ceiling = MaximumG * ReferenceMass / Math.Max(ReferenceMass, mass);
             LimitG = Math.Min(ceiling, LimitG + 2f * step);
             float alphaReserve = 1f - Smooth((alpha - 18f) / 6f);
-            float overloadReserve = 1f - Smooth((normalG - LimitG - .15f) / .85f);
-            float requested = Math.Max(0f, Math.Min(1f, -pitch)) * alphaReserve * overloadReserve;
-            pull = Math.Min(requested, pull + 4f * step);
-            Pitch = pitch >= 0f ? pitch * Math.Min(1f, BaselineG / LimitG) : -pull;
+            float applied = Math.Min(LimitG, 11f - 7f * Math.Max(0f, Math.Min(1f, approachBlend)));
+            float alphaLimit = 24f - 6f * Math.Max(0f, Math.Min(1f, approachBlend));
+            Pitch = governor.Step(pitch, speed, normalG, alpha, applied, alphaLimit, step,
+                nativeRatePerG > 0f ? nativeRatePerG : 9.81f / Math.Max(30f, speed), pitchRateUp, gravityNormalG);
             Roll = roll * (.75f + .25f * alphaReserve);
         }
 

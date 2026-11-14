@@ -18,7 +18,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 throw new InvalidOperationException("FS-20A prefab hash is occupied.");
             var holder = new GameObject("FS-20A templates");
             holder.SetActive(false);
-            UnityEngine.Object.DontDestroyOnLoad(holder);
+            if (Application.isPlaying) UnityEngine.Object.DontDestroyOnLoad(holder);
             AircraftDefinition definition = null;
             AircraftParameters parameters = null;
             try
@@ -51,6 +51,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 Fs20ExpandedBays.Install(encyclopedia, prefab.transform, false);
                 Fs20ExteriorPaint.Install(prefab.transform);
                 Fs20AFlightController.Configure(prefab.transform);
+                prefab.AddComponent<Fs20TakeoffPlanner>().Variant="A";
                 var filter = prefab.GetComponentInChildren<ControlsFilter>(true);
                 var hover = Fs20Tuning.Field(typeof(ControlsFilter), "autoHover").GetValue(filter);
                 Fs20Tuning.Set(hover, "Enabled", false);
@@ -58,17 +59,16 @@ namespace Japensou.NuclearOption.VortexConventional
                 parameters = UnityEngine.Object.Instantiate(source.aircraftParameters);
                 parameters.aircraftName = "FS-20A Vortex";
                 parameters.verticalLanding = false;
-                // Initial AI runway-planning values, not measured takeoff/landing performance.
-                parameters.takeoffSpeed = 80f;
+                // Preserve the existing recovery/base-selection policy. This
+                // metadata is not a measured takeoff ground-roll requirement.
                 parameters.takeoffDistance = 800f;
-                parameters.approachSpeed = 90f;
-                parameters.landingSpeed = 80f;
-                parameters.shortLandingSpeed = 80f;
-                parameters.cornerSpeed = 155f;
+                // Reviewed native AI planning profile; FBW calibration is separate.
+                Fs20AiCalibration.Apply("A", parameters);
                 definition = UnityEngine.Object.Instantiate(source);
                 definition.name = definition.jsonKey = Key;
                 definition.unitName = "FS-20A Vortex";
                 definition.code = "FS-20A";
+                Fs20VariantPricing.Apply(definition);
                 definition.description = "Runway-operated Vortex with original wings, a lighter fixed engine installation, extra internal fuel and energy-managed 11 G flight assist.";
                 definition.aircraftParameters = parameters;
                 var info = source.aircraftInfo;

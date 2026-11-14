@@ -95,9 +95,13 @@ internal static class SharedAirframeChecks
             true
         };
         var owned = AirframePool.SelectOwned(keys, reserved, "JP_FS20_CTOL", 1);
-        Check(owned.SequenceEqual(new[] { 0 }), "Sale prefers the unreserved body across variants");
-        owned = AirframePool.SelectOwned(keys, reserved, "SmallFighter1", 3);
-        Check(owned.SequenceEqual(new[] { 3, 2, 0 }), "Returning all family cells preserves unrelated ownership and removal order");
+        Check(owned.SequenceEqual(new[] { 3 }), "Owned debit selects only the requested variant");
+        owned = AirframePool.SelectOwned(keys, reserved, "SmallFighter1", 1);
+        Check(owned.SequenceEqual(new[] { 0 }), "Returning B does not consume another variant");
+        Reject(() => AirframePool.SelectOwned(keys, reserved, "SmallFighter1", 3), "Family stock does not grant cross-variant private ownership");
+        Reject(() => AirframePool.SelectOwned(new[]{"JP_FS20_A"},new[]{false},"JP_FS20_NA",1), "Buying A cannot debit NA");
+        owned=AirframePool.SelectOwned(new[]{"JP_FS20_A","JP_FS20_A"},new[]{false,true},"JP_FS20_A",1);
+        Check(owned.SequenceEqual(new[]{0}),"Purchased A is consumed before reserved A");
         Reject(() => AirframePool.SelectOwned(keys, reserved, "JP_FS20_A", 4), "Owned cells cannot be copied");
         var factionOne = new[]
         {

@@ -18,6 +18,9 @@ namespace Japensou.NuclearOption.VortexConventional
         [SerializeField] private Renderer[] panels;
         [SerializeField] private float glossiness;
 
+        // NA reuses the verified metre-scale native wing projection without
+        // shipping copies of built-in livery textures.
+        internal static Texture2D ProjectNativeLivery(Texture2D source){LoadMask();return Fs20TNativePaint.Transfer(source,shading,Size,true);}
         internal static Texture2D NeutralAtlas => neutralAtlas != null ? neutralAtlas : neutralAtlas = CreateAtlas(Neutral);
         internal static Material NativeMaterial(Material native)
         {

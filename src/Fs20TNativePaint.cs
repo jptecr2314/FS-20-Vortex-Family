@@ -51,6 +51,7 @@ namespace Japensou.NuclearOption.VortexConventional
             }
             finally { RenderTexture.active=old; GL.sRGBWrite=oldSrgb; RenderTexture.ReleaseTemporary(buffer); Release(image); }
         }
+        internal static Color32[] CoatBasis(out int width,out int height){width=baseWidth;height=baseHeight;if(baseline==null)throw new InvalidOperationException("Native coat basis not configured.");return baseline;}
         private static int Index(Color32 uv,int width,int height) =>
             Math.Min(height-1,((uv.b|uv.a<<8)*height)>>16)*width+Math.Min(width-1,((uv.r|uv.g<<8)*width)>>16);
 

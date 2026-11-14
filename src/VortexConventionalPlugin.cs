@@ -10,8 +10,9 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "6.0.7")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.6.9")]
     [BepInDependency("com.nikkorap.blueprinter")]
+    [BepInDependency("com.offiry.qol", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInIncompatibility(Fs20IdentityMigration.PreviousId)]
     [BepInIncompatibility("br.japensou.nuclearoption.sharedairframes")]
     public sealed class VortexConventionalPlugin : BaseUnityPlugin
@@ -31,6 +32,7 @@ namespace Japensou.NuclearOption.VortexConventional
         private AircraftDefinition variant;
         private AircraftDefinition variantA;
         private AircraftDefinition variantT;
+        private AircraftDefinition variantNA;
         private Harmony harmony;
         private ConfigEntry<Fs20FlapMode> flapMode;
         private ConfigEntry<bool> sharedStock;
@@ -52,6 +54,9 @@ namespace Japensou.NuclearOption.VortexConventional
             sharedStock.SettingChanged += OnStockSettingChanged;
             tDiagnostics = Config.Bind("FS-20T", "Record flight diagnostics", false, "Opt-in debugging: record the local FS-20T forces, moments and controls to BepInEx/FS20T-flight at 10 Hz for up to 120 seconds per aircraft. Disk recording adds overhead; leave disabled for normal play.");
             bDiagnostics = Config.Bind("FS-20T", "Record baseline B diagnostics", false, "Also record the local stock FS-20B for comparison, without changing its physics or controls.");
+            var naPaint=Config.Bind("FS-20NA", "Night livery", Fs20NANightScheme.NightGraphite, "Legacy fallback night scheme. Select Night Graphite, Midnight Blue or Low Contrast Charcoal in the game's Livery menu; each NA keeps its selected paint.");
+            Fs20NANightPaint.Scheme=naPaint.Value;
+            naPaint.SettingChanged+=(sender,args)=>{Fs20NANightPaint.Scheme=naPaint.Value;foreach(var paint in Resources.FindObjectsOfTypeAll<Fs20NANightPaint>())paint.Queue();};
             flapMode = Config.Bind("FS-20C", "Flap mode", Fs20FlapMode.Auto, "Auto schedules takeoff, approach and combat flaps. Other modes override the schedule; high-speed retraction stays active.");
             vaporHumidity=Config.Bind("Vapor", "Assumed relative humidity percent",85f,
                 new ConfigDescription("Ambient humidity for FS-20C/T condensation. The game exposes no humidity measurement; ISA temperature and this explicit assumption are used with native aerodynamic forces. Does not change flight physics.",new AcceptableValueRange<float>(0f,100f)));
@@ -72,14 +77,30 @@ namespace Japensou.NuclearOption.VortexConventional
             catch (Exception error)
             {
                 harmony.UnpatchSelf();
-                Logger.LogError("Single-player guard could not be installed; FS-20 features were not enabled: " + error);
+                Logger.LogError("Network compatibility hooks could not be installed; FS-20 features were not enabled: " + error);
                 return;
             }
 
             harmony.Patch(apply, postfix: new HarmonyMethod(typeof(VortexConventionalPlugin), nameof(AfterBlueprinter)) { priority = Priority.Last });
             harmony.Patch(hangarAwake, postfix: new HarmonyMethod(typeof(VortexConventionalPlugin), nameof(AfterHangarAwake)));
             harmony.PatchAll(typeof(Fs20FlightController.FlightSample));
+            harmony.PatchAll(typeof(Fs20NADAS.ThermalGate));
+            harmony.PatchAll(typeof(Fs20NADAS.Confirmed));
+            harmony.PatchAll(typeof(Fs20NARecon.OpticalGate));
+            harmony.PatchAll(typeof(Fs20NARecon.SingleSearch));
+            harmony.PatchAll(typeof(Fs20NARecon.ConfirmedContact));
+            harmony.PatchAll(typeof(Fs20NARecon.EmitterContact));
+            harmony.PatchAll(typeof(Fs20NASignature.PassiveStart));
+            harmony.PatchAll(typeof(Fs20NASignature.NoStartupPulse));
+            harmony.PatchAll(typeof(Fs20NASignature.FormationLightDefaults));
+            Fs20NASignature.BindFormationCompatibility(harmony);
+            harmony.PatchAll(typeof(Fs20NAThermalSource.ThermalOutput));
+            harmony.PatchAll(typeof(Fs20NAEotsView.StabilizedNativeFeed));
+            harmony.PatchAll(typeof(Fs20NAYawController.FilterYaw));
+            harmony.PatchAll(typeof(Fs20NANightPaint.PartLivery));
+            harmony.PatchAll(typeof(Fs20NANightPaint.NativePaint));
             harmony.PatchAll(typeof(Fs20FlightController.PrepareEnvelope));
+            harmony.PatchAll(typeof(Fs20TakeoffPlanner.NativePreflight));
             harmony.PatchAll(typeof(Fs20FlightController.ElevonJob));
             harmony.PatchAll(typeof(Fs20SlatHinge.AnimatePatch));
             harmony.PatchAll(typeof(Fs20TDamageProxy.FragmentScope));
@@ -166,6 +187,17 @@ namespace Japensou.NuclearOption.VortexConventional
             {
                 instance.Logger.LogError("FS-20T registration failed; A/B/C remain available: " + error);
             }
+            try { instance.RegisterNA(__0); }
+            catch (Exception error) { instance.Logger.LogError("FS-20NA registration failed; existing family preserved: " + error); }
+        }
+
+        private void RegisterNA(Encyclopedia encyclopedia)
+        {
+            if (variantNA != null || original == null) return;
+            variantNA = Fs20NAAirframe.Register(encyclopedia, original);
+            try { Fs20TVapor.Install(variantNA.unitPrefab.transform); }
+            catch (Exception error) { Logger.LogError("FS-20NA vapor setup failed: " + error); }
+            foreach (var hangar in Resources.FindObjectsOfTypeAll<Hangar>()) AddToHangar(hangar);
         }
 
         private void RegisterT(Encyclopedia encyclopedia)
@@ -201,6 +233,7 @@ namespace Japensou.NuclearOption.VortexConventional
             original = encyclopedia.aircraft.FirstOrDefault(definition => definition != null && definition.jsonKey == StockKey);
             if (original == null || original.unitPrefab == null || original.aircraftParameters == null)
                 throw new InvalidOperationException("Native FS-20 definition is unavailable.");
+            Fs20VariantPricing.Apply(original);
             if (encyclopedia.IndexLookup.OfType<UnitDefinition>().Any(definition => definition != null && definition.unitPrefab != null && definition.unitPrefab.TryGetComponent<NetworkIdentity>(out var identity) && identity.PrefabHash == PrefabHash))
                 throw new InvalidOperationException("Vortex CTOL prefab hash is already in use.");
             GameObject holder = null;
@@ -224,21 +257,20 @@ namespace Japensou.NuclearOption.VortexConventional
                 Fs20ExpandedBays.Install(encyclopedia, prefab.transform, true);
                 Fs20Tuning.Configure(prefab.transform);
                 prefab.AddComponent<Fs20FlightController>();
+                prefab.AddComponent<Fs20TakeoffPlanner>().Variant="C";
                 parameters = Instantiate(original.aircraftParameters);
                 parameters.aircraftName = Label;
                 parameters.verticalLanding = false;
-                parameters.takeoffSpeed = 45f;
-                // Short-field design target, to be validated on the Cursor.
+                // Retain the C's pre-calibration metadata. This is not proof of a
+                // 50 m physical ground roll or permission to recover on the Cursor.
                 parameters.takeoffDistance = 50f;
-                parameters.approachSpeed = 72f;
-                parameters.landingSpeed = 72f;
-                parameters.shortLandingSpeed = 72f;
-                parameters.cornerSpeed = 140f;
                 parameters.DefaultFuelLevel = 0.35f;
+                Fs20AiCalibration.Apply("C", parameters);
                 definitionCopy = Instantiate(original);
                 definitionCopy.name = definitionCopy.jsonKey = VariantKey;
                 definitionCopy.unitName = Label;
                 definitionCopy.code = "FS-20C";
+                Fs20VariantPricing.Apply(definitionCopy);
                 definitionCopy.description = "Composite-wing Vortex with a lighter fixed engine installation, 110/165 kN thrust, " + "integrated flaperons, adaptive 11 G flight assist and maneuvering thrust vectoring. Conventional landing; experimental short-deck takeoff configuration.";
                 definitionCopy.width = Fs20Geometry.Span;
                 definitionCopy.aircraftParameters = parameters;
@@ -410,6 +442,7 @@ namespace Japensou.NuclearOption.VortexConventional
             var updated = available.ToList();
             if (variant != null && !updated.Contains(variant))
                 updated.Add(variant);
+            if (variantNA != null && !updated.Contains(variantNA)) updated.Add(variantNA);
             if (variantT != null && !updated.Contains(variantT))
                 updated.Add(variantT);
             if (variantA != null && !updated.Contains(variantA) && !(hangar.attachedUnit is Ship) && hangar.GetComponentInParent<Ship>() == null)

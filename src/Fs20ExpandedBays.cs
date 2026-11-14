@@ -131,7 +131,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 array.SetValue(joint, i);
             }
         }
-        private static void AddMassAt(Transform root, AeroPart part, float mass, Vector3 position)
+        internal static void AddMassAt(Transform root, AeroPart part, float mass, Vector3 position)
         {
             var field = Fs20Tuning.Field(typeof(UnitPart), "centerOfMass");
             var previous = (Transform)field.GetValue(part);

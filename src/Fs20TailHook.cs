@@ -10,7 +10,8 @@ namespace Japensou.NuclearOption.VortexConventional
     {
         internal const string Key = "JP_FS20C_INTERNAL_HOOK";
         internal const float ExposedRcs = 0.002f;
-        internal static void Add(Encyclopedia encyclopedia, AircraftDefinition definition)
+        internal static void Add(Encyclopedia encyclopedia, AircraftDefinition definition) => AddVariant(encyclopedia, definition, Key);
+        internal static void AddVariant(Encyclopedia encyclopedia, AircraftDefinition definition, string hookKey)
         {
             var source = encyclopedia.weaponMounts.FirstOrDefault(m => m != null && m.jsonKey == "TailHook_Multirole1");
             if (source == null || source.prefab == null || source.prefab.GetComponent<TailHook>() == null)
@@ -25,13 +26,13 @@ namespace Japensou.NuclearOption.VortexConventional
             GameObject anchor = null;
             try
             {
-                mount.name = mount.jsonKey = Key;
+                mount.name = mount.jsonKey = hookKey;
                 mount.mountName = "Retractable Tail Hook";
                 mount.RCS = mount.emptyRCS = 0f;
                 mount.drag = mount.emptyDrag = 0f;
                 mount.mass = mount.emptyMass = Fs20BaySpec.HookMass;
                 mount.prefab = UnityEngine.Object.Instantiate(source.prefab, definition.unitPrefab.transform.parent, false);
-                mount.prefab.name = Key;
+                mount.prefab.name = hookKey;
                 // Use the native hook and arrestor interface.
                 Fs20Tuning.Set(mount.prefab.GetComponent<TailHook>(), "mass", Fs20BaySpec.HookMass);
                 var nativeHook = mount.prefab.GetComponent<TailHook>();
@@ -71,7 +72,7 @@ namespace Japensou.NuclearOption.VortexConventional
                         hardpoint
                     }
                 };
-                Encyclopedia.WeaponLookup.Add(Key, mount);
+                Encyclopedia.WeaponLookup.Add(hookKey, mount);
                 encyclopedia.weaponMounts.Add(mount);
                 ((INetworkDefinition)mount).LookupIndex = encyclopedia.IndexLookup.Count;
                 encyclopedia.IndexLookup.Add(mount);
@@ -79,8 +80,8 @@ namespace Japensou.NuclearOption.VortexConventional
             }
             catch
             {
-                if (Encyclopedia.WeaponLookup.TryGetValue(Key, out var existing) && existing == mount)
-                    Encyclopedia.WeaponLookup.Remove(Key);
+                if (Encyclopedia.WeaponLookup.TryGetValue(hookKey, out var existing) && existing == mount)
+                    Encyclopedia.WeaponLookup.Remove(hookKey);
                 encyclopedia.weaponMounts.Remove(mount);
                 encyclopedia.IndexLookup.Remove(mount);
                 if (anchor != null)
@@ -111,7 +112,7 @@ namespace Japensou.NuclearOption.VortexConventional
             var fairing = hook.GetComponent<Fs20HookFairing>();
             if (fairing != null) return fairing;
             var owner = hook.unitPart == null ? hook.GetComponentInParent<Aircraft>() : hook.unitPart.parentUnit as Aircraft;
-            if (owner == null || owner.definition == null || owner.definition.jsonKey != "JP_FS20_CTOL") return null;
+            if (owner == null || owner.definition == null || (owner.definition.jsonKey != "JP_FS20_CTOL" && owner.definition.jsonKey != Fs20NAAirframe.Key)) return null;
             return hook.gameObject.AddComponent<Fs20HookFairing>();
         }
 

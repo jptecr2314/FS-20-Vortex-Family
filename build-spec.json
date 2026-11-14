@@ -1,9 +1,7 @@
 {
-  "repo": "FS-20-Vortex-Family",
-  "version": "6.0.7",
+  "version": "0.6.9",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
-  "id": "fs20vortexfamily",
   "parent": false,
   "managed": [
     "mscorlib.dll",
@@ -24,7 +22,11 @@
     "UnityEngine.UIModule.dll",
     "UnityEngine.UI.dll",
     "UnityEngine.TextRenderingModule.dll",
-    "Mirage.dll"
+    "UnityEngine.InputLegacyModule.dll",
+    "Mirage.dll",
+    "Unity.Addressables.dll",
+    "Unity.ResourceManager.dll",
+    "Mirage.SocketLayer.dll"
   ],
   "sources": [
     "src/VortexConventionalPlugin.cs",
@@ -34,6 +36,17 @@
     "src/Fs20TAsset.cs",
     "src/Fs20TGeometry.cs",
     "src/Fs20TAirframe.cs",
+    "src/Fs20NAAirframe.cs",
+    "src/Fs20NAGeometry.cs",
+    "src/Fs20NASplitShell.cs",
+    "src/Fs20NAEotsHousing.cs",
+    "src/Fs20NATailClosure.cs",
+    "src/Fs20NANightPaint.cs",
+    "src/Fs20NALiveries.cs",
+    "src/Fs20NADAS.cs",
+    "src/Fs20NARecon.cs",
+    "src/Fs20NASignature.cs",
+    "src/Fs20NAYawController.cs",
     "src/Fs20TMass.cs",
     "src/Fs20TFlightPolicy.cs",
     "src/Fs20TLoadEnvelope.cs",
@@ -68,6 +81,9 @@
     "src/Fs20AInternalTank.cs",
     "src/Fs20AEnergyEnvelope.cs",
     "src/Fs20AFlightController.cs",
+    "src/Fs20AiCalibration.cs",
+    "src/Fs20DynamicTakeoff.cs",
+    "src/Fs20TakeoffPlanner.cs",
     "src/Fs20VaporEnvelope.cs",
     "src/Fs20ManeuverVapor.cs",
     "src/Fs20FamilyMenu.cs",
@@ -98,9 +114,22 @@
     "src/Fs20BaySupports.cs",
     "src/SharedAirframes/AirframePool.cs",
     "src/SharedAirframes/SharedAirframesPlugin.cs",
-    "src/Fs20SinglePlayer.cs"
+    "src/Multiplayer/Fs20NetworkPolicy.cs",
+    "src/Multiplayer/Fs20NetworkSession.cs",
+    "src/Multiplayer/Fs20NetworkSignature.cs",
+    "src/Multiplayer/Fs20NetworkSurfaces.cs",
+    "src/Multiplayer/Fs20SurfacePolicy.cs",
+    "src/Fs20VariantPricing.cs"
   ],
   "resources": [
+    {
+      "path": "assets/fs20na/Fs20NA_pattern_body.png",
+      "name": "Fs20NA_pattern_body.png"
+    },
+    {
+      "path": "assets/fs20na/Fs20NA_pattern_wing.png",
+      "name": "Fs20NA_pattern_wing.png"
+    },
     {
       "path": "assets/fs20-vapor/Fs20Vapor.bundle",
       "name": "Fs20Vapor.bundle"
@@ -122,12 +151,32 @@
       "name": "Fs20TFinishNormal.png"
     },
     {
+      "path": "assets/fs20-ai/Fs20TakeoffGrids.json",
+      "name": "Fs20TakeoffGrids.json"
+    },
+    {
       "path": "assets/fs20-internals/Fs20Internals.bin",
       "name": "Fs20Internals.bin"
     },
     {
       "path": "assets/fs20-internals/Fs20InteriorUv.bin",
       "name": "Fs20InteriorUv.bin"
+    },
+    {
+      "path": "assets/fs20na/Fs20NA_marks_bdf_body.png",
+      "name": "Fs20NA_marks_bdf_body.png"
+    },
+    {
+      "path": "assets/fs20na/Fs20NA_marks_bdf_wing.png",
+      "name": "Fs20NA_marks_bdf_wing.png"
+    },
+    {
+      "path": "assets/fs20na/Fs20NA_marks_pala_body.png",
+      "name": "Fs20NA_marks_pala_body.png"
+    },
+    {
+      "path": "assets/fs20na/Fs20NA_marks_pala_wing.png",
+      "name": "Fs20NA_marks_pala_wing.png"
     }
   ]
 }

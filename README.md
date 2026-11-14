@@ -1,69 +1,79 @@
-# FS-20 Vortex Family 6.0.7
+# FS-20 Vortex Family 0.6.9
 
-Four FS-20 variants in one aircraft family, one selector and one plugin.
-Open the FS-20B tile to select A, B, C or T. Shared airframe stock can be
-enabled or disabled from the mod configuration menu.
+Five FS-20 variants in one family, one selector and one plugin: A, the native B,
+C, integrated-delta VTOL T, and FS-20NA Night Attack. Open the FS-20B tile to
+choose a variant. Requires Nuclear Option 0.34.6, BepInEx 5 and Blueprinter 2.1.1,
+installed separately. This release is an experimental multiplayer prerelease.
 
-| Aircraft | Configuration |
-|---|---|
-| FS-20A | Conventional-flight variant with the original wing outline and additional internal fuel. |
-| FS-20B | The game's original VTOL aircraft, retained in the family selector. |
-| FS-20C | Conventional-flight variant with wider wings and a tailhook. |
-| FS-20T | Integrated-delta VTOL variant, articulated slats, composite mass model and separately damageable wing sections. |
+## Aircraft and inventory
 
-The T is included by default. It no longer needs the old **Enable experimental
-variant** setting. Its aircraft key remains `JP_FS20_T`; saved aircraft and
-loadout references retain the same keys. The C and T include volumetric wing
-condensation, moving slat/elevon coverage and corrected nose-to-tail density
-motion in forward flight. Condensation uses native aerodynamic loads and an
-explicit assumed humidity setting; it does not change aircraft forces.
+| Variant | Configuration | Base price (game currency) |
+|---|---|---:|
+| A | Conventional aircraft, original wing outline and extra internal fuel | $75m |
+| B | Original native VTOL aircraft | $90m |
+| C | Conventional aircraft with wider wings and an arresting hook | $105m |
+| T | Integrated-delta VTOL with articulated slats and separate wing damage sections | $125m |
+| NA | Night Attack variant with six liveries and dedicated sensors | $150m |
 
-## Installation
+Faction supply sharing is optional: F1 > FS-20 Vortex Family > Inventory >
+Shared airframe stock, with BepInEx Configuration Manager installed. Purchased
+and reserved aircraft keep their exact variant for ownership, flight, sale and
+return in both modes. Buying A does not grant ownership or resale value of NA.
+Reserved airframes cannot be sold. Existing inventories are not rewritten.
 
-Requires a licensed Nuclear Option installation, BepInEx 5 and Blueprinter
-2.1.1. Target game version: 0.34.6. This is a single-player package.
+The A/C/NA takeoff advisor uses current fuel, payload, CG/inertia and headwind
+relative to the runway or deck. It provides a planning estimate; it does not
+command rotation or guarantee a launch. Optional authored C/NA Penumbra catapult
+rules are under packaging/fs20-penumbra, with their own instructions; the
+third-party catapult loader is not included.
 
-1. Close the game and update your existing FS-20 Vortex Family installation.
-2. Import the ZIP into NOMM, or extract its `BepInEx` folder into the game.
-3. Keep one `VortexConventional.dll`. The old standalone Shared Airframes DLL
-   is superseded by the integrated stock controls.
-4. Start the game and check for `FS-20 Vortex Family 6.0.7` in the BepInEx log.
+## Installation and version-number correction
 
-The canonical plugin ID is `fs20vortexfamily`. Older configurations are copied
-only when the canonical configuration is absent. Previous settings are kept.
-The installation metadata can migrate from `br.japensou.nuclearoption.vortexctol`
-on startup; update the existing NOMM entry rather than installing a second copy.
+Close the game, then update the existing FS-20 Vortex Family entry in NOMM or
+extract the package's BepInEx folder into the game. Keep exactly one
+VortexConventional.dll and keep backups outside BepInEx/plugins. Preserve
+configuration files. The canonical plugin/catalog ID remains fs20vortexfamily.
+The old standalone Shared Airframes plugin is superseded by this family.
 
-## Inventory configuration
+The historical 6.0.7 number was a numbering mistake. The supported release line
+resumes at 0.6.9, using tags fs20-v0.6.9, fs20-v0.6.10 and later fs20-v1.0.0.
+The historical 6.0.7 release and its download links remain available. If you
+already installed 6.0.7 or a 6.x development build, explicitly select/reinstall
+0.6.9 once; a numeric update check will not offer this downgrade. Later releases
+advance normally within the corrected line. Catalog PR approval is separate
+from this GitHub release being available.
 
-With BepInEx Configuration Manager, open **F1 > FS-20 Vortex Family > Inventory
-> Shared airframe stock**. All four variants remain selectable in either mode.
+The optional Install.ps1 performs a checked installation with backups; it does
+not run automatically. The separate [NO Manual Tailhook](https://github.com/jptecr2314/NO-Manual-Tailhook)
+plugin is optional and is not bundled.
 
-- Enabled: A/B/C/T consume a single pool. With 48 B airframes and no other
-  stock, taking any variant leaves 47 available to the family.
-- Disabled: each variant uses its native stock and ownership counters.
+## Experimental matching-install multiplayer
 
-Switching modes does not duplicate or redistribute existing aircraft. Existing
-preferences are retained. The obsolete T experimental-enable flag is ignored.
+Use the identical package and game/mod versions on the host and every client.
+Enable Multiplayer / Enable matching modded sessions on all participants
+before entering a private session. Unmodded servers and mixed family builds are
+unsupported. Steam/password/game-build authentication remains native; the host
+controls shared supply and C flap policy. Simulation-owner guards cover flight
+assistance, the NA yaw allocator and arresting forces. Bounded remote visual
+updates cover slats, hooks and measured C/T vapor loads. Native replication
+still owns aircraft position, controls, weapons and damage.
 
-## Source and validation
+Local Mirage tests are not completed online acceptance: a real two-installation
+Steam flight, spawn/weapon/damage RPCs, late joins and latency/performance trials
+remain pending. See QA.md for the exact evidence and limitations.
 
-Build from the source export with PowerShell 7:
+## Source and build
 
 ```powershell
 ./build.ps1 -GamePath 'PATH_TO_NUCLEAR_OPTION'
-./test-family.ps1 -GamePath 'PATH_TO_NUCLEAR_OPTION'
 ```
 
-The build uses the ordered source/resource manifest in `build-spec.json`.
-Game libraries and the compiler are not distributed. `restore-compiler.ps1`
-downloads the pinned compiler and verifies its package hash when needed.
-See `QA.md` for the exact validation scope and inherited gameplay evidence.
+The ordered build-spec.json lists every compiled source and embedded resource.
+The compiler restorer verifies the pinned compiler package hash. Game/Unity
+libraries and compiler binaries are not distributed. Tests under tests/ retain
+their documented fixture scope; historical lab drivers may require adaptation
+to local paths and are not part of the build command.
 
-Multiplayer remains disabled while this aircraft plugin is enabled. The
-separate [NO Manual Tailhook](https://github.com/jptecr2314/NO-Manual-Tailhook)
-plugin remains optional and is not bundled.
-
-Author: **Jpgamer4045d**. Code license: MIT. AI assistance is declared in
-`AI_ASSISTANCE.md`. Game-derived assets retain their original ownership;
-see `THIRD_PARTY_NOTICES.md`. Not affiliated with Shockfront Studios.
+Author: Jpgamer4045d. Code license: MIT. Substantial AI assistance is declared
+in AI_ASSISTANCE.md. Game-derived resources retain their original ownership;
+see THIRD_PARTY_NOTICES.md. Not affiliated with Shockfront Studios.

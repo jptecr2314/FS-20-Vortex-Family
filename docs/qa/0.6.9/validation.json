@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "version": "0.6.9",
+  "revision": "variant-prices",
+  "candidateSha256": "8ecf56ef0c2a968fe814b3471664cb9e2aec2d14e591fef268fb5efa9a42488a",
+  "pricesMillions": {
+    "A": 75,
+    "B": 90,
+    "C": 105,
+    "T": 125,
+    "NA": 150
+  },
+  "nativeEconomyChecks": 596,
+  "purchaseSalePairs": 50,
+  "refusedCrossVariantPairs": 40,
+  "sharedStockModes": [
+    true,
+    false
+  ],
+  "legacyReproductionChecks": 8,
+  "legacyProfitWithInjectedPrices": 75,
+  "pureLedgerChecks": 615,
+  "nativeMultiplayerChecks": 116,
+  "resourcesPreserved": 14,
+  "exactOwnedVariants": true,
+  "factionStockPreserved": true,
+  "paidCellsConsumedBeforeReservations": true,
+  "nativeRecoverAirframeInUseTested": true,
+  "scope": "Native server command bodies and synchronized collections in inactive local objects with a controlled in-memory Mirage server identity. Native user-code handlers invoked directly; not real client RPC/auth transport or live mission. Local Mirage wire regression tested separately.",
+  "evidenceStage": "Final local pricing preparation; reused for publication of the identical binary"
+}

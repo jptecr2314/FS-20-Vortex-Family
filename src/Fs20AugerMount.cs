@@ -28,7 +28,7 @@ namespace Japensou.NuclearOption.VortexConventional
             mount.name = mount.jsonKey = key;mount.mountName = "GPO-2P Auger";
             mount.dontAutomaticallyAddToEncyclopedia = true;
             mount.mass = 1000f;mount.emptyMass = 0f;mount.ammo = 1;mount.GearSafety = mount.GroundSafety = true;
-            var holder = new GameObject(key + " template");holder.SetActive(false);UnityEngine.Object.DontDestroyOnLoad(holder);
+            var holder = new GameObject(key + " template");holder.SetActive(false);if(Application.isPlaying)UnityEngine.Object.DontDestroyOnLoad(holder);
             var wrapper = new GameObject(key);wrapper.transform.SetParent(holder.transform, false);
             var pair = UnityEngine.Object.Instantiate(donor.prefab, wrapper.transform, false);
             var weapons = pair.GetComponentsInChildren<MountedMissile>(true).OrderBy(m => m.transform.localPosition.x).ToArray();

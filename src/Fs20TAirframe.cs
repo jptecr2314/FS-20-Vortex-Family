@@ -15,7 +15,7 @@ namespace Japensou.NuclearOption.VortexConventional
             if (encyclopedia.IndexLookup.OfType<UnitDefinition>().Any(d => d != null && d.unitPrefab != null && d.unitPrefab.TryGetComponent<NetworkIdentity>(out var n) && n.PrefabHash == Hash)) throw new InvalidOperationException("FS-20T prefab hash is occupied.");
             var holder = new GameObject("FS-20T templates");
             holder.SetActive(false);
-            UnityEngine.Object.DontDestroyOnLoad(holder);
+            if (Application.isPlaying) UnityEngine.Object.DontDestroyOnLoad(holder);
             AircraftDefinition definition = null;
             AircraftParameters parameters = null;
             try
@@ -40,11 +40,10 @@ namespace Japensou.NuclearOption.VortexConventional
                 parameters.airfoils = donor.aircraftParameters.airfoils;
                 parameters.aircraftName = "FS-20T Vortex";
                 parameters.verticalLanding = true;
-                // Wing-loading scaling is an initial AI planning baseline.
+                // Retain the native VTOL takeoff threshold; wingborne guidance
+                // and native mass-scaled approach use the reviewed AI profile.
                 parameters.takeoffSpeed *= speedScale;
-                parameters.approachSpeed *= speedScale;
-                parameters.landingSpeed *= speedScale;
-                parameters.cornerSpeed *= speedScale;
+                Fs20AiCalibration.Apply("T", parameters);
                 var controller = prefab.AddComponent<Fs20TFlightController>();
                 controller.Configure(prefab.transform, speedScale, nativeResponse, parameters);
                 prefab.AddComponent<Fs20TFlightDiagnostics>();
@@ -52,6 +51,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 definition.name = definition.jsonKey = Key;
                 definition.unitName = "FS-20T Vortex";
                 definition.code = "FS-20T";
+                Fs20VariantPricing.Apply(definition);
                 definition.width = result.Span;
                 definition.aircraftParameters = parameters;
                 definition.description = "Integrated-delta Vortex with a lightweight composite fuselage and wing, articulated slats and independently damageable wing sections. Load-aware FBW with an 11 G positive ceiling. Retains the FS-20B engine and VTOL system.";

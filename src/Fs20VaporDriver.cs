@@ -50,9 +50,9 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             if(aircraft==null)return null;
             string key=aircraft.definition==null?null:aircraft.definition.jsonKey;
-            if(key==CKey || key==Fs20TAirframe.Key)return key;
+            if(key==CKey || key==Fs20TAirframe.Key || key==Fs20NAAirframe.Key)return key;
             string name=aircraft.name.Replace("(Clone)","");
-            return name==CKey || name==Fs20TAirframe.Key ? name : null;
+            return name==CKey || name==Fs20TAirframe.Key || name==Fs20NAAirframe.Key ? name : null;
         }
         private static Fs20TVapor Resolve(VaporEffect effect,Aircraft aircraft)
         {

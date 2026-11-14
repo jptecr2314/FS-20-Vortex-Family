@@ -18,6 +18,29 @@ namespace Japensou.NuclearOption.VortexConventional
     internal static class Fs20Tuning
     {
         internal static readonly FieldInfo Airborne = Field(typeof(Aircraft), "airborne");
+        private static readonly FieldInfo NativeCorner = Field(typeof(ControlsFilter.FlyByWire), "cornerSpeed");
+        private static readonly FieldInfo NativePitchRate = Field(typeof(ControlsFilter.FlyByWire), "maxPitchAngularVel");
+        private static readonly FieldInfo NativeLimitBlend = Field(typeof(ControlsFilter.FlyByWire), "limitFactorSmoothed");
+        private static readonly FieldInfo PitchBias = Field(typeof(ControlsFilter.FlyByWire), "pitchAdjuster");
+        private static readonly FieldInfo PitchIntegral = Field(typeof(ControlsFilter.FlyByWire), "i");
+        internal static float NativeRatePerG(ControlsFilter filter, Aircraft aircraft, float ceiling)
+        {
+            var fbw = filter.GetFlyByWire();
+            float corner = Mathf.Max(1f, (float)NativeCorner.GetValue(fbw));
+            float pressure = aircraft.speed * aircraft.speed * aircraft.airDensity / (corner * corner * 1.225f);
+            float physical = 9.81f / Mathf.Max(aircraft.speed, corner * .75f) *
+                (pressure < 1f ? Mathf.Clamp(pressure, .3f, 1f) : 1f);
+            // The native filter interpolates from direct rate to G mapping after toggling assist.
+            float blend = Mathf.Lerp((float)NativeLimitBlend.GetValue(fbw), 1f, Time.fixedDeltaTime);
+            return Mathf.Lerp((float)NativePitchRate.GetValue(fbw) / Mathf.Max(1f, ceiling), physical, blend);
+        }
+        internal static void RecoverHardPitch(ControlsFilter filter, bool hard)
+        {
+            if (!hard) return;
+            var fbw = filter.GetFlyByWire();
+            if ((float)PitchBias.GetValue(fbw) < 0f) PitchBias.SetValue(fbw, 0f);
+            if ((float)PitchIntegral.GetValue(fbw) > 0f) PitchIntegral.SetValue(fbw, 0f);
+        }
         internal static void LandingSchedule(ControlsFilter filter, Fs20LandingEnvelope landing, float basePitch, float baseRoll, float baseAlpha)
         {
             var fbw = filter.GetFlyByWire();
@@ -87,7 +110,9 @@ namespace Japensou.NuclearOption.VortexConventional
             Set(flyByWire, "takeoffSpeed", 42f);
             Set(flyByWire, "maxPitchAngularVel", Fs20FlightEnvelope.CombatPitchRate);
             Set(flyByWire, "alphaLimiter", Fs20FlightEnvelope.MaximumAlpha);
-            Set(flyByWire, "alphaLimiterStrength", 0.12f);
+            // Native multiplier is 1 - min(alpha excess, 10) * strength.
+            // Values above .1 can reverse the requested rate beyond the alpha limit.
+            Set(flyByWire, "alphaLimiterStrength", 0.1f);
             Set(flyByWire, "pFactorFast", 9.2f);
             Set(flyByWire, "dFactorFast", 1.05f);
             Set(flyByWire, "maxRollAngularVel", Fs20FlightEnvelope.CombatRollRate);
@@ -151,7 +176,6 @@ namespace Japensou.NuclearOption.VortexConventional
         private readonly Fs20LandingEnvelope landing = new Fs20LandingEnvelope();
         private static readonly FieldInfo GLimit = Fs20Tuning.Field(typeof(ControlsFilter.FlyByWire), "gLimitPositive");
         private static readonly FieldInfo Cockpit = Fs20Tuning.Field(typeof(Aircraft), "cockpit");
-        private static readonly FieldInfo PitchTrim = Fs20Tuning.Field(typeof(ControlsFilter.FlyByWire), "pitchAdjuster");
         internal float FlapDegrees { get; private set; }
         internal float Airspeed { get; private set; }
         internal float EquivalentAirspeed { get; private set; }
@@ -209,16 +233,18 @@ namespace Japensou.NuclearOption.VortexConventional
             EquivalentAirspeed=Fs20FlightEnvelope.EquivalentSpeed(Airspeed,aircraft.airDensity);
             float alpha = -Mathf.Atan2(airflow.y, Mathf.Max(1f, airflow.z)) * Mathf.Rad2Deg;
             float normalG = Vector3.Dot(aircraft.accel-Physics.gravity/9.81f, body.rotation*Vector3.up);
-            envelope.Step(inputs.pitch, inputs.roll, Airspeed, aircraft.airDensity, aircraft.GetMass(), alpha, normalG, aircraft.gearDeployed, assisted, Time.fixedDeltaTime);
-            landing.Step(envelope.Pitch, envelope.Roll, aircraft.speed, aircraft.gearDeployed, (bool)Fs20Tuning.Airborne.GetValue(aircraft), assisted, Time.fixedDeltaTime);
-            GLimit.SetValue(filter.GetFlyByWire(), Mathf.Min(envelope.LimitG, Mathf.Lerp(11f, 4f, landing.Blend)));
+            landing.Step(inputs.pitch, inputs.roll, aircraft.speed, aircraft.gearDeployed, (bool)Fs20Tuning.Airborne.GetValue(aircraft), assisted, Time.fixedDeltaTime);
             Fs20Tuning.LandingSchedule(filter, landing, Fs20FlightEnvelope.CombatPitchRate, Fs20FlightEnvelope.CombatRollRate, Fs20FlightEnvelope.MaximumAlpha);
-            if(assisted && envelope.PullReserve<1f){
-                var fbw=filter.GetFlyByWire();float trim=(float)PitchTrim.GetValue(fbw);
-                if(trim<0f)PitchTrim.SetValue(fbw,trim*envelope.PullReserve);
-            }
-            inputs.pitch = landing.Pitch;
-            inputs.roll = landing.Roll;
+            float ceiling = Mathf.Min(Fs20FlightEnvelope.TargetLimit(Airspeed, aircraft.airDensity, aircraft.GetMass(), aircraft.gearDeployed), Mathf.Lerp(11f, 4f, landing.Blend));
+            ceiling = Mathf.Min(ceiling, envelope.LimitG + 2f * Mathf.Clamp(Time.fixedDeltaTime, 0f, .1f));
+            envelope.Step(landing.Pitch, landing.Roll, Airspeed, aircraft.airDensity, aircraft.GetMass(), alpha, normalG, aircraft.gearDeployed, assisted, Time.fixedDeltaTime,
+                Fs20Tuning.NativeRatePerG(filter, aircraft, ceiling),
+                -Vector3.Dot(body.angularVelocity, body.rotation * Vector3.right),
+                Vector3.Dot(-Physics.gravity / 9.81f, body.rotation * Vector3.up), landing.Blend);
+            GLimit.SetValue(filter.GetFlyByWire(), Mathf.Min(envelope.LimitG, Mathf.Lerp(11f, 4f, landing.Blend)));
+            Fs20Tuning.RecoverHardPitch(filter, assisted && envelope.HardProtection);
+            inputs.pitch = envelope.Pitch;
+            inputs.roll = envelope.Roll;
         }
 
         [HarmonyPatch(typeof(ControlsFilter), "Filter")]
@@ -242,7 +268,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 if (controller != null)
                     controller.PrepareControls(__instance, __0, __2, active && ___aircraft.radarAlt>=___minAlt);
                 else
-                    aController.PrepareControls(__instance, __0, __2, active);
+                    aController.PrepareControls(__instance, __0, __2, active && ___aircraft.radarAlt>=___minAlt);
             }
         }
 

@@ -5,7 +5,7 @@ namespace Japensou.NuclearOption.SharedAirframes
 {
     internal static class AirframePool
     {
-        internal static bool IsFamily(string key) => key == "SmallFighter1" || key == "JP_FS20_A" || key == "JP_FS20_CTOL" || key == "JP_FS20_T";
+        internal static bool IsFamily(string key) => key == "SmallFighter1" || key == "JP_FS20_A" || key == "JP_FS20_CTOL" || key == "JP_FS20_T" || key == "JP_FS20_NA";
         internal static bool Same(string a, string b) => a != null && b != null && (a == b || IsFamily(a) && IsFamily(b));
         internal static int Count(IEnumerable<int> counts)
         {
@@ -49,7 +49,7 @@ namespace Japensou.NuclearOption.SharedAirframes
 
             )
                 for (int i = keys.Length - 1; i >= 0 && indices.Count < quantity; i--)
-                    if (reserved[i] == reservation && Same(keys[i], requested))
+                    if (reserved[i] == reservation && keys[i] != null && keys[i] == requested)
                         indices.Add(i);
             if (indices.Count < quantity)
                 throw new InvalidOperationException("Insufficient owned airframes.");

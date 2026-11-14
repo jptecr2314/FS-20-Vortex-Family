@@ -56,7 +56,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 "JP_FS20_A",
                 "SmallFighter1",
                 "JP_FS20_CTOL",
-                "JP_FS20_T"
+                "JP_FS20_T", "JP_FS20_NA"
             }
 
             )

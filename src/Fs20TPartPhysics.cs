@@ -23,7 +23,7 @@ namespace Japensou.NuclearOption.VortexConventional
         internal Vector3 WorldMassCenter => massCenter.position;
         internal Vector3 WorldForcePoint => lift.TransformPoint(forcePointInLift);
         private static bool IsT(UnitPart owner) => owner.parentUnit is Aircraft aircraft &&
-            aircraft.definition != null && aircraft.definition.jsonKey == Fs20TAirframe.Key;
+            aircraft.definition != null && (aircraft.definition.jsonKey == Fs20TAirframe.Key || aircraft.definition.jsonKey == Fs20NAAirframe.Key);
 
         internal void StoreCollisionBounds(Bounds bounds)
         {

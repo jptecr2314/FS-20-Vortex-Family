@@ -1,4 +1,29 @@
-## 6.0.7
+# Changelog
+
+## 0.6.9 — experimental multiplayer prerelease
+
+- Includes FS-20NA Night Attack alongside A/B/C/T, including six liveries,
+  restored cannon doors and body surfaces, and backed split-drag leaves/LODs.
+- Integrates newer A/C pitch-governor and native AI-planning work with the
+  opt-in multiplayer branch. Existing T VTOL and damage ownership are retained.
+- Adds the dynamic A/C/NA takeoff advisor with fuel, payload, CG, inertia,
+  conservative external drag and relative-deck-wind inputs.
+- Extends the network definition signature and remote slat/hook presentation to
+  NA; guards the NA yaw allocator by simulation ownership.
+- Preserves matching-build admission, native authentication, host stock/flap
+  policy, and C/T measured-vapor replication from the 0.6.8 adapter.
+
+
+### Per-variant economy
+
+Base airframes: A $75m, B $90m, C $105m, T $125m, NA $150m.
+Faction supply sharing remains optional. Purchased and reserved aircraft retain
+their exact variant for ownership, flight, sale and return. A purchase of A
+does not grant ownership of NA. Native server commands use the definition price;
+reserved aircraft remain ineligible for sale. No save inventory is rewritten.
+
+## Historical release notes
+
 
 - Include the FS-20T as a standard member of the A/B/C/T family in one DLL.
 - Retain the four-variant selector and configurable shared or separate stock.
@@ -105,3 +130,4 @@ Single-player FS-20A and FS-20C variants alongside the stock B, with a native-st
 0.4.2 aligns the C slat hinge axes with its enlarged wings throughout deployment. A/C no longer render the residual lift-fan casing, drive shaft or wing VTOL feeder pipes; shared engine intake ducts and skin are retained. Existing mass budgets and engine settings are unchanged. Mesh selectors were checked against licensed native geometry; this revision still needs an in-game visual check.
 
 0.4.1 added single-player-only entry/transport guards. 0.4.0 merged aircraft and shared-stock code into one plugin. F1 Inventory > Shared airframe stock selects pooled or separate native counters without changing A/B/C availability. Legacy standalone plugin is incompatible and must be removed.
+

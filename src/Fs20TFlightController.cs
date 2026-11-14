@@ -62,10 +62,10 @@ namespace Japensou.NuclearOption.VortexConventional
         internal void PrepareControls(ControlsFilter filter, ControlInputs inputs, Vector3 raw, Rigidbody body,
             bool assisted, float minimumFbwSpeed, float minimumFbwAltitude)
         {
-            if (aircraft == null || swivel == null) return;
+            if (aircraft == null || (swivel == null && GetComponent<Fs20NAMarker>() == null)) return;
             RawInputs = raw;
             ControlledBody = body;
-            float angle = swivel.GetNozzleAngle();
+            float angle = NozzleAngle;
             bool forward = assisted && aircraft.speed >= minimumFbwSpeed && aircraft.radarAlt >= minimumFbwAltitude
                 && !aircraft.IsAutoHoverEnabled();
             bool airborne = (bool)Fs20Tuning.Airborne.GetValue(aircraft);

@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "candidateSha256": "8ecf56ef0c2a968fe814b3471664cb9e2aec2d14e591fef268fb5efa9a42488a",
+  "baselineSha256": "790257fe9c5b998b79aa8ea20e4fbed37d5165a94c0356adc5bd593e3858ed1f",
+  "changedTypes": [
+    "AirframePool",
+    "SharedAirframeStock",
+    "VortexConventionalPlugin",
+    "Fs20TAirframe",
+    "Fs20NAAirframe",
+    "Fs20AirframeA"
+  ],
+  "addedType": "Fs20VariantPricing",
+  "factoryWiring": [
+    {
+      "type": "Fs20AirframeA",
+      "calls": 1
+    },
+    {
+      "type": "Fs20TAirframe",
+      "calls": 1
+    },
+    {
+      "type": "Fs20NAAirframe",
+      "calls": 1
+    },
+    {
+      "type": "VortexConventionalPlugin",
+      "calls": 2
+    }
+  ],
+  "resourcesPreserved": 14,
+  "multiplayerUnchanged": true,
+  "flightGeometryAndDamageUnchanged": true,
+  "factionSupplyUnchanged": true,
+  "crossVariantOwnershipDisabled": true,
+  "nativePriceContractChecked": true,
+  "installed": false
+}

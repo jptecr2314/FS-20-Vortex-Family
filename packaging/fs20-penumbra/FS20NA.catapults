@@ -1,0 +1,3 @@
+# FS-20NA retains the stock FS-20B intake and nose-gear reference.
+# definition name | clutch parent | clutch local offset | radius | release m/s | max accel g | throttle delay s | deploy JBDs
+JP_FS20_NA | intake | 0, -1.294, 0.219 | 1.25 | 90 | 5 | 0.5 | true

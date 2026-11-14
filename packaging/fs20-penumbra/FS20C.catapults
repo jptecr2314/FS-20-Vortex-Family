@@ -1,0 +1,5 @@
+# FS-20C Vortex compatibility for the Aryx Penumbra catapult system.
+# The C retains the native FS-20 intake/nose-gear transforms.
+# Match the installed SmallFighter1 rule; leave all other aircraft unchanged.
+# definition name | clutch parent | clutch local offset | radius | release m/s | max accel g | throttle delay s | deploy JBDs
+JP_FS20_CTOL | intake | 0, -1.294, 0.219 | 1.25 | 90 | 5 | 0.5 | true

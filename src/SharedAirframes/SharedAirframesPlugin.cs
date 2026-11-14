@@ -24,7 +24,7 @@ namespace Japensou.NuclearOption.SharedAirframes
 
         internal static ConfigEntry<bool> Configure(ConfigFile config)
         {
-            sharedStock = config.Bind("Inventory", "Shared airframe stock", true, "Share faction stock and owned airframes across the available FS-20A/B/C/T variants. Disable for separate native counters. " + "Variants remain selectable. Existing stock is never duplicated or redistributed.");
+            sharedStock = config.Bind("Inventory", "Shared airframe stock", true, "Share faction stock across FS-20A/B/C/T/NA. Purchased and reserved aircraft remain specific to their variant. Disable for separate faction counters. Existing stock is never duplicated or redistributed.");
             return sharedStock;
         }
 
@@ -45,7 +45,6 @@ namespace Japensou.NuclearOption.SharedAirframes
                 {
                     typeof(SupplyReads),
                     typeof(SupplyDebit),
-                    typeof(FamilyMatches),
                     typeof(OwnedDebit),
                     typeof(FamilyBadge),
                     typeof(UpdateBadge)
@@ -74,8 +73,6 @@ namespace Japensou.NuclearOption.SharedAirframes
         internal static bool Family(UObject value) => value is AircraftDefinition d && AirframePool.IsFamily(d.jsonKey);
         internal static bool SameDefinition(UObject a, UObject b)
         {
-            if (Enabled && Family(a) && Family(b))
-                return true;
             return a == b;
         }
 
@@ -209,7 +206,7 @@ namespace Japensou.NuclearOption.SharedAirframes
         {
             private static bool Prefix(Player __instance, AircraftDefinition __0, int __1)
             {
-                if (!Enabled || __1 >= 0 || !Family(__0) || !__instance.IsServer)
+                if (__1 >= 0 || !Family(__0) || !__instance.IsServer)
                     return true;
                 var cells = __instance.OwnedAirframes.ToArray();
                 var indices = AirframePool.SelectOwned(cells.Select(c => c.Definition == null ? null : c.Definition.jsonKey).ToArray(), cells.Select(c => c.Reserved).ToArray(), __0.jsonKey, -(long)__1);
@@ -251,7 +248,9 @@ namespace Japensou.NuclearOption.SharedAirframes
             var player = (Player)FamilyPlayer.GetValue(menu);
             if (tile == null || player == null || tile.definition == null)
                 return;
-            int owned = player.OwnedAirframeTypeCount(tile.definition, true);
+            // Only the family launcher shows a combined badge. Native variant
+            // tiles and transaction/flight ownership checks stay exact.
+            int owned = player.OwnedAirframes.Count(cell => Family(cell.Definition));
             SetCount((Text)OwnedLabel.GetValue(tile), owned);
             var hq = player.HQ;
             if (hq != null)
