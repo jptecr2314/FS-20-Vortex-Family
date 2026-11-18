@@ -1,0 +1,19 @@
+{
+  "completed": true,
+  "assertions": 12,
+  "nativeAuthenticationUnmodified": true,
+  "realNativeProcesses": true,
+  "sameComputer": true,
+  "twoPcAcceptance": false,
+  "cache": {
+    "registered": 12,
+    "loaded": 6,
+    "references": 589,
+    "idle": 0,
+    "loading": 0,
+    "syncColdLoads": 3,
+    "asyncColdLoads": 3,
+    "evictions": 0,
+    "textureBytes": 0
+  }
+}

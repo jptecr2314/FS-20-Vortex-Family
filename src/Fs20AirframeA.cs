@@ -64,6 +64,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 parameters.takeoffDistance = 800f;
                 // Reviewed native AI planning profile; FBW calibration is separate.
                 Fs20AiCalibration.Apply("A", parameters);
+                Fs20PreparedLiveries.Configure("A",parameters);
                 definition = UnityEngine.Object.Instantiate(source);
                 definition.name = definition.jsonKey = Key;
                 definition.unitName = "FS-20A Vortex";
@@ -83,6 +84,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 definition.unitPrefab = prefab;
                 ((Unit)aircraft).definition = definition;
                 network.PrefabHash = Hash;
+                Fs20PaintLods.Prepare(prefab);
                 prefab.SetActive(true);
                 definition.mass = prefab.GetComponentsInChildren<UnitPart>(true).Sum(p => p.GetMass());
                 encyclopedia.aircraft.Add(definition);
@@ -114,3 +116,4 @@ namespace Japensou.NuclearOption.VortexConventional
     {
     }
 }
+

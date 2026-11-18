@@ -63,6 +63,9 @@ namespace Japensou.NuclearOption.VortexConventional
 
         private static Texture2D Clean(Texture2D source)
         {
+            // Prepared built-ins/custom packs are final coats. Native stencil cleanup
+            // is baked into A built-ins offline; never read back their BC7 textures.
+            if (Fs20PreparedLiveries.OwnsTexture(source)) return source;
             if (source.width < 64 || source.height < 64 || source.name.StartsWith(Prefix, StringComparison.Ordinal)) return source;
             int key = source.GetInstanceID();
             Texture2D result = null;

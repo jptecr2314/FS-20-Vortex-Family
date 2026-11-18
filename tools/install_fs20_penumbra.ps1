@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$GamePath='C:/Program Files (x86)/Steam/steamapps/common/Nuclear Option',
     [ValidateSet('C','NA')][string]$AircraftVariant='C',
     [string]$ReceiptPath

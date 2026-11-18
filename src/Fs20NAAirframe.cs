@@ -72,6 +72,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 prefab.AddComponent<Fs20NAYawController>().Configure(prefab.transform);
                 definition.mass = prefab.GetComponentsInChildren<UnitPart>(true).Sum(p => p.GetMass());
                 definition.aircraftInfo.emptyWeight = definition.mass;
+                Fs20PaintLods.Prepare(prefab);
                 prefab.SetActive(true);
                 encyclopedia.aircraft.Add(definition); Encyclopedia.Lookup.Add(Key, definition);
                 ((INetworkDefinition)definition).LookupIndex = encyclopedia.IndexLookup.Count;

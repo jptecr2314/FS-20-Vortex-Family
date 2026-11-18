@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.6.9")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.7.0")]
     [BepInDependency("com.nikkorap.blueprinter")]
     [BepInDependency("com.offiry.qol", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInIncompatibility(Fs20IdentityMigration.PreviousId)]
@@ -100,6 +100,9 @@ namespace Japensou.NuclearOption.VortexConventional
             harmony.PatchAll(typeof(Fs20NANightPaint.PartLivery));
             harmony.PatchAll(typeof(Fs20NANightPaint.NativePaint));
             harmony.PatchAll(typeof(Fs20FlightController.PrepareEnvelope));
+            harmony.PatchAll(typeof(Fs20AiGuidance.GuidanceScope));
+            harmony.PatchAll(typeof(Fs20AiGuidance.GunPoint));
+            harmony.PatchAll(typeof(Fs20AiGuidance.AttitudeOutput));
             harmony.PatchAll(typeof(Fs20TakeoffPlanner.NativePreflight));
             harmony.PatchAll(typeof(Fs20FlightController.ElevonJob));
             harmony.PatchAll(typeof(Fs20SlatHinge.AnimatePatch));
@@ -129,6 +132,7 @@ namespace Japensou.NuclearOption.VortexConventional
             harmony.PatchAll(typeof(Fs20BayLoadout.Saved));
             harmony.PatchAll(typeof(Fs20ExteriorPaint.LiveryChanged));
             harmony.PatchAll(typeof(Fs20TDeltaPaint.LiveryChanged));
+            harmony.PatchAll(typeof(Fs20PreparedLiveries.Lifetime));
             harmony.PatchAll(typeof(Fs20VaporDriver.Activate));
             harmony.PatchAll(typeof(Fs20VaporDriver.Update));
             harmony.PatchAll(typeof(Fs20VaporDriver.ReadLoads));

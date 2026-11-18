@@ -291,6 +291,30 @@ namespace FS20MultiplayerBench
             Check(!peer.IsConnected,"Native Mirage must reject unauthenticated surface data");
             report.scenarios.Add("native surface serializer; unauthenticated presentation packet rejected");
         }
+        private static void CompactPaints(Report report)
+        {
+            using(var stream=plugin.GetManifestResourceStream("Fs20PaintCatalog.json"))
+            using(var reader=new StreamReader(stream)) {
+                var manifest=Newtonsoft.Json.Linq.JObject.Parse(reader.ReadToEnd());
+                var paints=(Newtonsoft.Json.Linq.JArray)manifest["paints"];
+                Check(paints.Count==12,"Twelve built-in paints");
+                foreach(var v in new[]{"A","T","NA"})foreach(var faction in new[]{"BDF","PALA"})
+                    Check(paints.Count(p=>(string)p["variant"]==v&&(string)p["faction"]==faction)==2,"Two paints per variant and faction");
+                string directory=Environment.GetEnvironmentVariable("FS20_PAINT_DIRECTORY");int textures=0;
+                foreach(var paint in paints){var bundle=AssetBundle.LoadFromFile(Path.Combine(directory,(string)paint["bundleFile"]));
+                    try {foreach(var role in ((string)paint["variant"]=="A"?new[]{"body"}:new[]{"body","wing"})) {
+                        var texture=bundle.LoadAsset<Texture2D>((string)paint[role]);
+                        Check(texture!=null&&texture.width==2048&&texture.height==2048,"Full atlas dimensions retained");
+                        Check(texture.format==TextureFormat.BC7&&!texture.isReadable&&texture.mipmapCount>1,"Offline BC7 mips retained");textures++;
+                    }}finally{bundle.Unload(true);}
+                }
+                var basis=AssetBundle.LoadFromFile(Path.Combine(directory,(string)manifest["basisFile"]));
+                try{Check(basis.LoadAsset<Texture2D>("fs20wingbasis").width==2048,"Separate 2K basis loads");textures++;}finally{basis.Unload(true);}
+                Check(textures==21,"Exactly 21 prepared textures across independent bundles");
+                report.scenarios.Add("Twelve independent 2K BC7 paint bundles and separate shading basis");
+            }
+        }
+
         public static void Run()
         {
             output=Environment.GetEnvironmentVariable("FS20_MP_OUTPUT");Directory.CreateDirectory(output);
@@ -301,16 +325,41 @@ namespace FS20MultiplayerBench
                 using(var sha=System.Security.Cryptography.SHA256.Create())report.pluginSha256=BitConverter.ToString(sha.ComputeHash(File.ReadAllBytes(plugin.Location))).Replace("-","").ToLowerInvariant();
                 harmony=new Harmony("fs20.local.multiplayer.069");
                 foreach(var nested in P("Fs20Multiplayer").GetNestedTypes(All).Where(t=>t.GetCustomAttributes(typeof(HarmonyPatch),false).Length>0))harmony.PatchAll(nested);
-                Call("Fs20NetworkSurfaces","Install",harmony);Serializers();
+                Call("Fs20NetworkSurfaces","Install",harmony);Serializers();CompactPaints(report);
                 typeof(BepInEx.Paths).GetProperty("BepInExConfigPath",All).SetValue(null,Path.Combine(output,"fixture-bepinex.cfg"));
                 typeof(BepInEx.Paths).GetProperty("ConfigPath",All).SetValue(null,output);
+                var pluginPath=Path.Combine(output,"fixture-plugins");Directory.CreateDirectory(pluginPath);
+                typeof(BepInEx.Paths).GetProperty("PluginPath",All).SetValue(null,pluginPath);
                 Static("Fs20Multiplayer","logger",new ManualLogSource("FS20 local bench"));
-                var config=new ConfigFile(Path.Combine(output,"fixture.cfg"),false);
+                var configPath=Path.Combine(output,"fixture-"+Guid.NewGuid().ToString("N")+".cfg");
+                var config=new ConfigFile(configPath,false);
+                Call("Fs20Multiplayer","ConfigureSessions",config);
+                var option=config.Bind("Multiplayer","Enable matching modded sessions",false);
+                Check(option.Value,"Fresh configuration enables matching sessions");
+                option.Value=false;Call("Fs20Multiplayer","ConfigureSessions",config);
+                Check(!option.Value,"Later explicit opt-out survives repeated setup");
+                config.Bind("Multiplayer","0.7 session default migrated",false).Value=false;
+                Call("Fs20Multiplayer","ConfigureSessions",config);
+                Check(option.Value,"Legacy disabled default migrates once");
+                option.Value=false;config.Save();
+                var reloaded=new ConfigFile(configPath,true);
+                Call("Fs20Multiplayer","ConfigureSessions",reloaded);
+                Check(!reloaded.Bind("Multiplayer","Enable matching modded sessions",true).Value,"Explicit opt-out survives config reload");
                 Static("Fs20Multiplayer","enabled",config.Bind("MP","enabled",false));
                 Check(!(bool)Call("Fs20Multiplayer","AllowStart"),"Disabled multiplayer must be denied");
                 Handshake(report,true,true);Handshake(report,false,true);Handshake(report,true,false);Handshake(report,true,true);Handshake(report,true,true,true);
                 holder=new GameObject("FS20 local multiplayer fixtures");holder.SetActive(false);
-                Controls(report,holder);NativeDamage(report,holder);SurfaceMotion(report,holder);SurfaceMotionC(report,holder);SurfaceMotionC(report,holder,"JP_FS20_NA");HostPolicy(report,config);TLayout(report,holder);SurfaceWire(report);
+                Controls(report,holder);NativeDamage(report,holder);SurfaceMotion(report,holder);SurfaceMotionC(report,holder);SurfaceMotionC(report,holder,"JP_FS20_NA");HostPolicy(report,config);TLayout(report,holder);
+                var cache=(System.Collections.IDictionary)F(P("Fs20ExteriorPaint"),"textures").GetValue(null);int cached=cache.Count;
+                foreach(int scheme in new[]{0,2,3,4}){
+                    var paint=Call("Fs20PreparedLiveries","Scheme","A",scheme);paint.GetType().GetMethod("Load",All).Invoke(paint,null);var texture=(Texture2D)F(paint.GetType(),"bodyTexture").GetValue(paint);
+                    Check((bool)Call("Fs20PreparedLiveries","OwnsTexture",texture),"Prepared coat ownership recognized");
+                    Check(ReferenceEquals(texture,Call("Fs20ExteriorPaint","Clean",texture)),"Prepared A keeps the exact BC7 atlas");
+                    Check(texture.format==TextureFormat.BC7&&!texture.isReadable,"Prepared coat remains compressed and non-readable");
+                }
+                Check(cache.Count==cached,"No runtime stencil copies for prepared coats");
+                var foreign=new Texture2D(2,2);Check(!(bool)Call("Fs20PreparedLiveries","OwnsTexture",foreign),"Unowned native texture is not mistaken for a prepared coat");Object.DestroyImmediate(foreign);
+                SurfaceWire(report);
                 report.patches=harmony.GetPatchedMethods().Count();report.nativeWirePackets=frames;
                 Check(report.patches>=25,"Expected all network integration hooks to bind");
                 report.passed=true;

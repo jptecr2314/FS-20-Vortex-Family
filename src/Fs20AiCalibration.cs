@@ -2,7 +2,7 @@ using System;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    // Local clean-airframe planning calibration, 2026-11-14. Reference data and
+    // A/C/NA nine-G energy references, revised 2026-11-17. T stays at its installed values. Reference data and
     // native guidance receipts: D:/Artifacts/fs20-ai-calibration/2026-11-14/.
     // Landing speeds are native maxWeight references, not touchdown speeds at
     // arbitrary mass. Native AI applies sqrt(currentMass / maxWeight) itself.
@@ -14,10 +14,10 @@ namespace Japensou.NuclearOption.VortexConventional
             bool vtol;
             switch (variant)
             {
-                case "A": takeoff=110; landing=110; approach=125; corner=140; radius=550; cruise=.4f; vtol=false; break;
-                case "C": takeoff=95; landing=95; approach=110; corner=120; radius=400; cruise=.4f; vtol=false; break;
+                case "A": takeoff=110; landing=110; approach=125; corner=220; radius=550; cruise=.4f; vtol=false; break;
+                case "C": takeoff=95; landing=95; approach=110; corner=200; radius=450; cruise=.4f; vtol=false; break;
                 case "T": takeoff=0; landing=85; approach=100; corner=100; radius=300; cruise=.45f; vtol=true; break;
-                case "NA": takeoff=85; landing=85; approach=100; corner=100; radius=300; cruise=.4f; vtol=false; break;
+                case "NA": takeoff=85; landing=85; approach=100; corner=200; radius=450; cruise=.4f; vtol=false; break;
                 case "B": return; // Stock native VTOL is the unchanged control reference.
                 default: throw new ArgumentOutOfRangeException(nameof(variant));
             }

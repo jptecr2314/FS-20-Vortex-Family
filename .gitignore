@@ -3,3 +3,4 @@ build/
 *.user
 *.log
 .vs/
+/assets/fs20-paints/Fs20PreparedPaints.bundle

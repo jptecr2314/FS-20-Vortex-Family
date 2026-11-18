@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 — asynchronous own paints and matching multiplayer
+
+- Four dedicated faction paints per A/T/NA variant, retained UV/BC7 quality and corrected distant vertex-color response.
+- Demand-loaded optional coats with shared ownership across native handles, LODs, damage states and detached parts.
+- Reviewed A/C/NA AI and NA gun capture; existing T handling preserved.
+- Matching-install multiplayer enabled by default; native Steam/password authentication and host authority retained.
+- Complete external BuiltinPaints payload, checked rollback installer and optional paint creator kit. See RELEASE_NOTES.md and QA.md for tests and limits.
+
 ## 0.6.9 — experimental multiplayer prerelease
 
 - Includes FS-20NA Night Attack alongside A/B/C/T, including six liveries,

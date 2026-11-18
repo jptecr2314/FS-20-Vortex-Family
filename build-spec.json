@@ -1,5 +1,5 @@
 {
-  "version": "0.6.9",
+  "version": "0.7.0",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
   "parent": false,
@@ -26,7 +26,8 @@
     "Mirage.dll",
     "Unity.Addressables.dll",
     "Unity.ResourceManager.dll",
-    "Mirage.SocketLayer.dll"
+    "Mirage.SocketLayer.dll",
+    "Newtonsoft.Json.dll"
   ],
   "sources": [
     "src/VortexConventionalPlugin.cs",
@@ -119,7 +120,12 @@
     "src/Multiplayer/Fs20NetworkSignature.cs",
     "src/Multiplayer/Fs20NetworkSurfaces.cs",
     "src/Multiplayer/Fs20SurfacePolicy.cs",
-    "src/Fs20VariantPricing.cs"
+    "src/Fs20VariantPricing.cs",
+    "src/Fs20PreparedLiveries.cs",
+    "src/Fs20AiGuidance.cs",
+    "src/Fs20NAAimPolicy.cs",
+    "src/Fs20PaintCache.cs",
+    "src/Fs20PaintLods.cs"
   ],
   "resources": [
     {
@@ -177,6 +183,10 @@
     {
       "path": "assets/fs20na/Fs20NA_marks_pala_wing.png",
       "name": "Fs20NA_marks_pala_wing.png"
+    },
+    {
+      "path": "assets/fs20-paints/BuiltinPaints/catalog.json",
+      "name": "Fs20PaintCatalog.json"
     }
   ]
 }

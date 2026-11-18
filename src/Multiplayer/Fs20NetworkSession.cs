@@ -61,8 +61,7 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             logger = log;
             var plugin = (BaseUnityPlugin)AccessTools.Field(typeof(VortexConventionalPlugin), "instance").GetValue(null);
-            enabled = plugin.Config.Bind("Multiplayer", "Enable matching modded sessions", false,
-                "Experimental. Enable on the host and every client, using matching FS-20 builds, mods and definition order. The host authorizes these aircraft and controls shared stock/flap policy for the session. Restart the session after changing settings.");
+            ConfigureSessions(plugin.Config);
             localStock = (ConfigEntry<bool>)AccessTools.Field(typeof(SharedAirframeStock), "sharedStock").GetValue(null);
             localFlaps = (ConfigEntry<Fs20FlapMode>)AccessTools.Field(typeof(VortexConventionalPlugin), "flapMode").GetValue(plugin);
             if (localStock == null || localFlaps == null) throw new InvalidOperationException("FS-20 session settings are unavailable.");
@@ -74,6 +73,17 @@ namespace Japensou.NuclearOption.VortexConventional
                 typeof(ServerDisconnected), typeof(ClientDisconnected), typeof(ServerStopped), typeof(StockPolicy), typeof(FlapPolicy), typeof(FlightAuthority), typeof(HookForceAuthority), typeof(BayMassAuthority) })
                 harmony.PatchAll(patch);
             logger.LogInfo("FS-20 experimental multiplayer hooks ready. Modded sessions enabled: " + enabled.Value);
+        }
+
+        internal static void ConfigureSessions(ConfigFile config)
+        {
+            enabled = config.Bind("Multiplayer", "Enable matching modded sessions", true,
+                "Experimental. Enable on the host and every client, using matching FS-20 builds, mods and definition order. The host authorizes these aircraft and controls shared stock/flap policy for the session. Restart the session after changing settings.");
+            // One-time migration: older releases wrote a disabled default.
+            // Subsequent explicit opt-outs remain respected.
+            var migrated = config.Bind("Multiplayer", "0.7 session default migrated", false,
+                "Internal migration marker. Preserves later explicit multiplayer opt-outs.");
+            if (!migrated.Value) { enabled.Value = true; migrated.Value = true; }
         }
 
         private static bool Reject(string reason)

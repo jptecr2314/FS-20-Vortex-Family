@@ -1,0 +1,40 @@
+{
+  "addedTypes": [
+    "<>f__AnonymousType1`9",
+    "Fs20PaintCache",
+    "Fs20PaintLease",
+    "Fs20PaintLods",
+    "Fs20LodPaintBinding"
+  ],
+  "passed": true,
+  "replacedResource": [
+    "Fs20PreparedPaints.bundle",
+    "Fs20PaintCatalog.json"
+  ],
+  "flightAiPhysicsDamageAndGeometryIdentical": true,
+  "changedTypes": [
+    "VortexConventionalPlugin",
+    "Fs20TAirframe",
+    "Fs20NAAirframe",
+    "Fs20AirframeA",
+    "Fs20NetworkSignature",
+    "Fs20PreparedLiveries"
+  ],
+  "identicalResources": [
+    "Fs20NA_pattern_body.png",
+    "Fs20NA_pattern_wing.png",
+    "Fs20Vapor.bundle",
+    "Fs20TNativePaintUv.png",
+    "Fs20T.bin",
+    "Fs20TDetail.png",
+    "Fs20TFinishNormal.png",
+    "Fs20TakeoffGrids.json",
+    "Fs20Internals.bin",
+    "Fs20InteriorUv.bin",
+    "Fs20NA_marks_bdf_body.png",
+    "Fs20NA_marks_bdf_wing.png",
+    "Fs20NA_marks_pala_body.png",
+    "Fs20NA_marks_pala_wing.png"
+  ],
+  "candidateSha256": "AE06C05E010E3CC8A9A4F2B3C165816E85180497FACFDE972B7A3BAE0A73F590"
+}

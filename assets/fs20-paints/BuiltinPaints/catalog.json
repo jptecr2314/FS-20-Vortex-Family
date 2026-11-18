@@ -1,0 +1,214 @@
+{
+    "schemaVersion": 2,
+    "packageId": "fs20.own-paints",
+    "version": "0.7.0",
+    "author": "FS-20 Vortex Family",
+    "basisFile": "fs20-basis.bundle",
+    "basisSha256": "fe945fb057f80e37abd52556bf53705c53d896696f5328f6efa8cc1597b75e45",
+    "paints": [
+        {
+            "id": "t.naval",
+            "variant": "T",
+            "displayName": "BDF Naval Slate",
+            "faction": "BDF",
+            "body": "t.naval.body",
+            "wing": "t.naval.wing",
+            "bundleFile": "fs20-t.naval.bundle",
+            "bundleSha256": "fb737d924c291e89bc56c97bd9eb58639eb14d043e906db9cc4f2cc88f8e5fbc",
+            "scheme": 0,
+            "glossiness": 0.2800000011920929,
+            "averageColor": [
+                54,
+                76,
+                90
+            ]
+        },
+        {
+            "id": "t.lowvis",
+            "variant": "T",
+            "displayName": "BDF Low Visibility",
+            "faction": "BDF",
+            "body": "t.lowvis.body",
+            "wing": "t.lowvis.wing",
+            "bundleFile": "fs20-t.lowvis.bundle",
+            "bundleSha256": "b74b2de1bfd80f1cdb1436347eb7f2f4a1600c35c764352808f2a3a156e2638e",
+            "scheme": 2,
+            "glossiness": 0.2800000011920929,
+            "averageColor": [
+                59,
+                67,
+                75
+            ]
+        },
+        {
+            "id": "t.desert",
+            "variant": "T",
+            "displayName": "PALA Desert Splinter",
+            "faction": "PALA",
+            "body": "t.desert.body",
+            "wing": "t.desert.wing",
+            "bundleFile": "fs20-t.desert.bundle",
+            "bundleSha256": "258e9e7ab9809dbe5325ecd5983d882c0cc212688a468baa2331098c20de822f",
+            "scheme": 3,
+            "glossiness": 0.2800000011920929,
+            "averageColor": [
+                113,
+                103,
+                80
+            ]
+        },
+        {
+            "id": "t.night",
+            "variant": "T",
+            "displayName": "PALA Night Graphite",
+            "faction": "PALA",
+            "body": "t.night.body",
+            "wing": "t.night.wing",
+            "bundleFile": "fs20-t.night.bundle",
+            "bundleSha256": "418b24c0c1c037885bf7646e073241796300faa182c00a677c955bcd96c09a1b",
+            "scheme": 4,
+            "glossiness": 0.2800000011920929,
+            "averageColor": [
+                22,
+                27,
+                32
+            ]
+        },
+        {
+            "id": "na.naval",
+            "variant": "NA",
+            "displayName": "BDF Naval Graphite",
+            "faction": "BDF",
+            "body": "na.naval.body",
+            "wing": "na.naval.wing",
+            "bundleFile": "fs20-na.naval.bundle",
+            "bundleSha256": "ac447886ca92e896f5a6523c1f372c06551b5f8b37bb9b1691607589f31dd8c3",
+            "scheme": 0,
+            "glossiness": 0.05000000074505806,
+            "averageColor": [
+                28,
+                40,
+                47
+            ]
+        },
+        {
+            "id": "na.lowvis",
+            "variant": "NA",
+            "displayName": "BDF Low Contrast Charcoal",
+            "faction": "BDF",
+            "body": "na.lowvis.body",
+            "wing": "na.lowvis.wing",
+            "bundleFile": "fs20-na.lowvis.bundle",
+            "bundleSha256": "31f74536e46000a90ea1e0ce2500267d2e5e5dac0b9ad3ed3573ad49f540c3d1",
+            "scheme": 2,
+            "glossiness": 0.05000000074505806,
+            "averageColor": [
+                33,
+                40,
+                47
+            ]
+        },
+        {
+            "id": "na.desert",
+            "variant": "NA",
+            "displayName": "PALA Desert Graphite",
+            "faction": "PALA",
+            "body": "na.desert.body",
+            "wing": "na.desert.wing",
+            "bundleFile": "fs20-na.desert.bundle",
+            "bundleSha256": "535f30d0d3a818144896f9882c2e1affd3ae662bce8a77f61f75bb61c6712544",
+            "scheme": 3,
+            "glossiness": 0.05000000074505806,
+            "averageColor": [
+                52,
+                49,
+                42
+            ]
+        },
+        {
+            "id": "na.night",
+            "variant": "NA",
+            "displayName": "PALA Matte Night",
+            "faction": "PALA",
+            "body": "na.night.body",
+            "wing": "na.night.wing",
+            "bundleFile": "fs20-na.night.bundle",
+            "bundleSha256": "d72f1789b35f252f35f2f666614f107a7eef8f5643138d888d646091036084a2",
+            "scheme": 4,
+            "glossiness": 0.05000000074505806,
+            "averageColor": [
+                19,
+                25,
+                30
+            ]
+        },
+        {
+            "id": "a.air-superiority",
+            "variant": "A",
+            "displayName": "BDF Air Superiority Grey",
+            "faction": "BDF",
+            "body": "a.air-superiority.body",
+            "wing": "",
+            "bundleFile": "fs20-a.air-superiority.bundle",
+            "bundleSha256": "718b5092403cbbd9bff8e075cce0dfb93df5c797aab0aa942dcfce47d2203b98",
+            "scheme": 0,
+            "glossiness": 0.2800000011920929,
+            "averageColor": [
+                90,
+                106,
+                118
+            ]
+        },
+        {
+            "id": "a.lowvis",
+            "variant": "A",
+            "displayName": "BDF Low Visibility Grey",
+            "faction": "BDF",
+            "body": "a.lowvis.body",
+            "wing": "",
+            "bundleFile": "fs20-a.lowvis.bundle",
+            "bundleSha256": "f276afbad606068c05ee1480588cb6b4249922c8ee78ea3b0e1c67724433eba0",
+            "scheme": 2,
+            "glossiness": 0.2800000011920929,
+            "averageColor": [
+                98,
+                110,
+                121
+            ]
+        },
+        {
+            "id": "a.desert",
+            "variant": "A",
+            "displayName": "PALA Desert Tactical",
+            "faction": "PALA",
+            "body": "a.desert.body",
+            "wing": "",
+            "bundleFile": "fs20-a.desert.bundle",
+            "bundleSha256": "9666ddaf4201c39241b0fbd715678af7bc5b857ec7466fca697f606b67e6c507",
+            "scheme": 3,
+            "glossiness": 0.2800000011920929,
+            "averageColor": [
+                120,
+                109,
+                84
+            ]
+        },
+        {
+            "id": "a.night",
+            "variant": "A",
+            "displayName": "PALA Night Interceptor",
+            "faction": "PALA",
+            "body": "a.night.body",
+            "wing": "",
+            "bundleFile": "fs20-a.night.bundle",
+            "bundleSha256": "a934dd3fd6df8c82fef309489b11a936933d14482e7a31bc99253c233cbebdf3",
+            "scheme": 4,
+            "glossiness": 0.2800000011920929,
+            "averageColor": [
+                27,
+                33,
+                40
+            ]
+        }
+    ]
+}

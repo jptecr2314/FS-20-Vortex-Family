@@ -44,6 +44,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 // and native mass-scaled approach use the reviewed AI profile.
                 parameters.takeoffSpeed *= speedScale;
                 Fs20AiCalibration.Apply("T", parameters);
+                Fs20PreparedLiveries.Configure("T",parameters);
                 var controller = prefab.AddComponent<Fs20TFlightController>();
                 controller.Configure(prefab.transform, speedScale, nativeResponse, parameters);
                 prefab.AddComponent<Fs20TFlightDiagnostics>();
@@ -60,6 +61,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 definition.unitPrefab = prefab;
                 ((Unit)aircraft).definition = definition;
                 network.PrefabHash = Hash;
+                Fs20PaintLods.Prepare(prefab);
                 prefab.SetActive(true);
                 encyclopedia.aircraft.Add(definition);
                 Encyclopedia.Lookup.Add(Key, definition);

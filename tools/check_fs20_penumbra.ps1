@@ -1,4 +1,4 @@
-﻿param([string]$GamePath='C:/Program Files (x86)/Steam/steamapps/common/Nuclear Option', [ValidateSet('C','NA')][string]$AircraftVariant='C', [string]$Plugin, [string]$ReportPath, [switch]$RequireInstalledRule)
+param([string]$GamePath='C:/Program Files (x86)/Steam/steamapps/common/Nuclear Option', [ValidateSet('C','NA')][string]$AircraftVariant='C', [string]$Plugin, [string]$ReportPath, [switch]$RequireInstalledRule)
 $key=if($AircraftVariant -eq 'NA'){'JP_FS20_NA'}else{'JP_FS20_CTOL'}
 $familyField=if($AircraftVariant -eq 'NA'){'variantNA'}else{'variant'}
 if(!$ReportPath){$ReportPath='D:/Artifacts/fs20-penumbra/'+$(if($AircraftVariant -eq 'NA'){'NA-'}else{''})+'CONTRACT_CHECKS.json'}

@@ -35,4 +35,8 @@ foreach($name in @('README.md','THIRD_PARTY_NOTICES.md','AI_ASSISTANCE.md','CHAN
  Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $out -Force
 }
 if(Test-Path (Join-Path $PSScriptRoot 'LICENSE')){Copy-Item (Join-Path $PSScriptRoot 'LICENSE') $out -Force}
+$paints=Join-Path $PSScriptRoot 'assets/fs20-paints/BuiltinPaints'
+$paintTarget=Join-Path $out 'BuiltinPaints'
+New-Item -ItemType Directory -Path $paintTarget -Force|Out-Null
+Get-ChildItem -LiteralPath $paints -File|Where-Object {$_.Extension-eq'.bundle'-or$_.Name-eq'catalog.json'}|ForEach-Object {Copy-Item -LiteralPath $_.FullName -Destination $paintTarget -Force}
 Get-FileHash (Join-Path $out $spec.dll) -Algorithm SHA256

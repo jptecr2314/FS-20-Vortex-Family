@@ -11,19 +11,17 @@ namespace Japensou.NuclearOption.VortexConventional
         internal const string MaterialKey = "__deltaSkin";
         private const int Size = 4096;
         private static readonly int BaseMap = Shader.PropertyToID("_BaseMap");
-        private static readonly Color32 Neutral = new Color32(104, 103, 104, 255);
-        private static readonly Dictionary<Texture2D, Texture2D> Liveries = new Dictionary<Texture2D, Texture2D>();
+
         private static byte[] shading;
-        private static Texture2D neutralAtlas, normalAtlas;
+        private static Texture2D normalAtlas;
         [SerializeField] private Renderer[] panels;
         [SerializeField] private float glossiness;
 
-        // NA reuses the verified metre-scale native wing projection without
-        // shipping copies of built-in livery textures.
-        internal static Texture2D ProjectNativeLivery(Texture2D source){LoadMask();return Fs20TNativePaint.Transfer(source,shading,Size,true);}
-        internal static Texture2D NeutralAtlas => neutralAtlas != null ? neutralAtlas : neutralAtlas = CreateAtlas(Neutral);
+        // Keep the native shader's neutral basis independent from the chosen coat.
+        internal static Texture2D NeutralAtlas => Fs20PreparedLiveries.WingBasis;
         internal static Material NativeMaterial(Material native)
         {
+            LoadMask();
             Fs20TNativePaint.Configure(native);
             var neutral=NeutralAtlas;
             return Fs20TNativePaint.Material(neutral,NormalAtlas,shading,Size);
@@ -74,34 +72,8 @@ namespace Japensou.NuclearOption.VortexConventional
             }
         }
 
-        private static Texture2D CreateAtlas(Color32 neutral)
+        private void ApplyPrepared(Texture2D atlas)
         {
-            LoadMask();
-            var colors = new Color32[shading.Length];
-            for (int i = 0; i < colors.Length; i++)
-            {
-                Color32 color = neutral;
-                int tone = shading[i] - 128;
-                colors[i] = new Color32(Tone(color.r, tone), Tone(color.g, tone), Tone(color.b, tone), 255);
-            }
-            var texture = new Texture2D(Size, Size, TextureFormat.RGB24, true, false)
-            {
-                name = "FS-20T delta paint", wrapMode = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Trilinear, anisoLevel = 8
-            };
-            texture.SetPixels32(colors);
-            texture.Apply(true, false);
-            if (SystemInfo.SupportsTextureFormat(TextureFormat.DXT1)) texture.Compress(true);
-            texture.Apply(true, true);
-            return texture;
-        }
-
-        private static byte Tone(byte color, int shift) => (byte)Mathf.Clamp(color + shift, 0, 255);
-        private void Apply(Texture2D source)
-        {
-            var atlas = NeutralAtlas;
-            if (source != null && !Liveries.TryGetValue(source, out atlas))
-                Liveries.Add(source, atlas = Fs20TNativePaint.Transfer(source,shading,Size,true));
             var properties = new MaterialPropertyBlock();
             foreach (var panel in panels)
             {
@@ -123,13 +95,24 @@ namespace Japensou.NuclearOption.VortexConventional
         [HarmonyPatch(typeof(LiveryBehaviour), "SetLivery")]
         internal static class LiveryChanged
         {
+            private static void Prefix(Aircraft ___aircraft,ref LiveryData livery)
+            {
+                if(___aircraft==null||___aircraft.GetComponent<Fs20NAMarker>()!=null||___aircraft.GetComponent<Fs20TDeltaPaint>()==null)return;
+                var prepared=Fs20PreparedLiveries.Resolve("T",livery);Fs20PreparedLiveries.Select(___aircraft,prepared);livery=prepared.Data;
+            }
+
             private static void Postfix(Aircraft ___aircraft, LiveryData livery)
             {
                 var paint = ___aircraft == null ? null : ___aircraft.GetComponent<Fs20TDeltaPaint>();
                 if (paint == null || paint.panels == null) return;
-                try { paint.glossiness=livery==null?0f:livery.Glossiness; paint.Apply(livery?.Texture); }
+                try {
+                    bool na=___aircraft.GetComponent<Fs20NAMarker>()!=null;
+                    var prepared=Fs20PreparedLiveries.Current(___aircraft,na?"NA":"T");prepared.Load();
+                    paint.glossiness=prepared.glossiness;paint.ApplyPrepared(prepared.wingTexture);
+                }
                 catch (Exception error) { Debug.LogWarning("FS-20T paint kept its current finish: " + error.Message); }
             }
         }
     }
 }
+
