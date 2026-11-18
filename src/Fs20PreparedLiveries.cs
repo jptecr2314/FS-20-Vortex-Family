@@ -86,7 +86,42 @@ internal static class Fs20PreparedLiveries {
    bool lod=Fs20PaintLods.Painted(renderer);
    if(!lod&&!renderer.sharedMaterials.Any(m=>m!=null&&(m.name.Contains("SmallFighter1_skin")||m.name.Contains("FS20T delta paint"))))continue;
    if(lod)Fs20PaintLods.Apply(renderer,paint);
+   ApplyExteriorAtlases(renderer,paint);
    var lease=renderer.GetComponent<Fs20PaintLease>()??renderer.gameObject.AddComponent<Fs20PaintLease>();lease.Bind(paint);
+  }
+ }
+ // Native UnitPart.SetLivery works with the body's LiveryData even on
+ // extension meshes. Bind the right atlas by material role after that write.
+ internal static bool WingMaterial(Material material) =>
+  material != null && material.name.IndexOf("FS20T delta paint", StringComparison.Ordinal) >= 0;
+ internal static bool BodyMaterial(Material material) =>
+  material != null && material.name.IndexOf("SmallFighter1_skin", StringComparison.Ordinal) >= 0;
+ static void ApplyExteriorAtlases(MeshRenderer renderer, Paint paint)
+ {
+  if (paint.variant == "A") return;
+  bool na = paint.variant == "NA";
+  if (na)
+   for (var node = renderer.transform; node != null; node = node.parent)
+    if (node.name == "nozzle" || node.name.StartsWith("nozzle_", StringComparison.Ordinal) ||
+        node.name.StartsWith("swivelDuct", StringComparison.Ordinal)) return;
+  var materials = renderer.sharedMaterials;
+  MaterialPropertyBlock block = null;
+  for (int slot = 0; slot < materials.Length; slot++)
+  {
+   var material = materials[slot];
+   bool wing = WingMaterial(material);
+   if (!wing && !(na && BodyMaterial(material))) continue;
+   var atlas = wing ? paint.wingTexture : paint.bodyTexture;
+   if (block == null) block = new MaterialPropertyBlock();
+   renderer.GetPropertyBlock(block, slot);
+   block.SetTexture("_Livery", atlas);
+   if (na)
+   {
+    block.SetTexture("_Basecolor", atlas);
+    block.SetTexture("_BasecolorDmg", atlas);
+   }
+   renderer.SetPropertyBlock(block, slot);
+   block.Clear();
   }
  }
  [HarmonyPatch(typeof(UnitPart),"SetLivery")]

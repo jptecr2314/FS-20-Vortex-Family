@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.7.0")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.7.1")]
     [BepInDependency("com.nikkorap.blueprinter")]
     [BepInDependency("com.offiry.qol", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInIncompatibility(Fs20IdentityMigration.PreviousId)]

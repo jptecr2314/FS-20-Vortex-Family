@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+- Corrected wing-atlas bindings and the distant paint finish on T and NA.
+
 ## 0.7.0 — asynchronous own paints and matching multiplayer
 
 - Four dedicated faction paints per A/T/NA variant, retained UV/BC7 quality and corrected distant vertex-color response.

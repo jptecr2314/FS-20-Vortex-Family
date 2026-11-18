@@ -40,15 +40,67 @@ namespace FS20StreamingVerification {
    foreach(var part in plane.GetAllParts())foreach(var binding in part.GetComponentsInChildren(type,true)){
     var filter=binding.GetComponent<MeshFilter>();var original=(Mesh)type.GetField("Original",Flags).GetValue(binding);var mesh=filter.sharedMesh;if(!mesh.name.StartsWith("FS20 distant "))continue;changed++;
     Check(original!=mesh&&original.vertices.SequenceEqual(mesh.vertices)&&original.normals.SequenceEqual(mesh.normals)&&original.uv.SequenceEqual(mesh.uv)&&original.triangles.SequenceEqual(mesh.triangles)&&original.bounds==mesh.bounds,"LOD recolor changed geometry/normal/UV/bounds");
-    var before=original.colors32;var after=mesh.colors32;Check(before.Length==after.Length&&before.Select(c=>c.a).SequenceEqual(after.Select(c=>c.a)),"LOD recolor changed the alpha channel");
+    var before=original.colors32;var after=mesh.colors32;Check(after.Length==mesh.vertexCount&&(before.Length==0?after.All(c=>c.a==255):before.Select(c=>c.a).SequenceEqual(after.Select(c=>c.a))),"LOD recolor changed the alpha channel");
    }Check(changed>0,"No native distant paint binding was exercised");
   }
-  void ValidateSharedLods(){var filters=owned.Where(p=>p!=null).SelectMany(p=>p.GetAllParts()).SelectMany(p=>p.GetComponentsInChildren<MeshFilter>(true)).Where(f=>f.sharedMesh!=null&&f.sharedMesh.name.StartsWith("FS20 distant "));foreach(var group in filters.GroupBy(f=>f.sharedMesh.name))Check(group.Select(f=>f.sharedMesh.GetInstanceID()).Distinct().Count()==1,"Aircraft with the same paint duplicated a distant mesh");}
+  void ValidateWingAtlas(Aircraft plane){
+   var wingSlots=0;var block=new MaterialPropertyBlock();
+   foreach(var renderer in plane.GetAllParts().SelectMany(p=>p.GetComponentsInChildren<MeshRenderer>(true)).Distinct()){
+    var materials=renderer.sharedMaterials;
+    for(int i=0;i<materials.Length;i++){
+     var material=materials[i];if(material==null||!material.name.Contains("FS20T delta paint"))continue;
+     renderer.GetPropertyBlock(block,i);
+     var livery=block.GetTexture("_Livery")??material.GetTexture("_Livery");
+     Check(livery!=null&&livery.name.EndsWith(".wing"),renderer.name+" received "+(livery==null?"no atlas":livery.name)+" instead of the wing atlas");
+     if(plane.definition.jsonKey=="JP_FS20_NA"){
+      var baseColor=block.GetTexture("_Basecolor")??material.GetTexture("_Basecolor");
+      Check(baseColor==livery,renderer.name+" has inconsistent NA albedo and livery");
+     }
+     block.Clear();wingSlots++;
+    }
+   }
+   Check(wingSlots>0,"Missing painted wing slots");
+   var far=plane.GetAllParts().SelectMany(p=>p.GetComponentsInChildren<LODGroup>(true)).Distinct()
+    .Where(g=>g.name.StartsWith("FS20T LOD ")&&g.lodCount==3)
+    .SelectMany(g=>g.GetLODs()[2].renderers).OfType<MeshRenderer>().Distinct().ToArray();
+   Check(far.Any(r=>r.sharedMaterials.Any(m=>m&&m.shader.name=="Shader Graphs/LOD")),"No authored far surfaces use the native distant material");
+   foreach(var renderer in far)
+    Check(!renderer.sharedMaterials.Any(m=>m&&(m.name.Contains("FS20T delta paint")||m.name.Contains("SmallFighter1_skin"))),renderer.name+" still uses a detailed paint on the far level");
+  }
+  void ValidateSharedLods(){
+   var type=AccessTools.TypeByName("Japensou.NuclearOption.VortexConventional.Fs20LodPaintBinding");
+   if(type==null)return;
+   var original=type.GetField("Original",Flags);
+   var filters=owned.Where(p=>p!=null).SelectMany(p=>p.GetAllParts()).SelectMany(p=>p.GetComponentsInChildren<MeshFilter>(true)).Distinct()
+    .Where(f=>f.sharedMesh!=null&&f.sharedMesh.name.StartsWith("FS20 distant ")&&f.GetComponent(type)!=null);
+   foreach(var group in filters.GroupBy(f=>new{mesh=(Mesh)original.GetValue(f.GetComponent(type)),paint=f.sharedMesh.name}))
+    Check(group.Select(f=>f.sharedMesh.GetInstanceID()).Distinct().Count()==1,"Aircraft with the same paint and source mesh duplicated a distant mesh");
+  }
   IEnumerator Capture(string name,int lod){
    if(Environment.GetEnvironmentVariable("FS20_STREAM_SKIP_CAPTURES")=="1")yield break;
    var groups=target.GetAllParts().SelectMany(p=>p.GetComponentsInChildren<LODGroup>(true)).Distinct().ToArray();
    if(lod==0){var rows=new List<object>();foreach(var r in target.GetAllParts().SelectMany(p=>p.GetComponentsInChildren<MeshRenderer>(true)).Distinct()){var mf=r.GetComponent<MeshFilter>();if(!mf||!mf.sharedMesh||!r.sharedMaterials.Any(m=>m&&m.shader&&m.shader.name=="Shader Graphs/LOD"))continue;var mesh=mf.sharedMesh;rows.Add(new{renderer=r.name,mesh=mesh.name,readable=mesh.isReadable,vertices=mesh.vertexCount,colors=mesh.isReadable?mesh.colors32:null,positions=mesh.isReadable?mesh.vertices.Select(v=>new[]{v.x,v.y,v.z}).ToArray():null,uv=mesh.isReadable?mesh.uv.Select(v=>new[]{v.x,v.y}).ToArray():null,triangles=mesh.isReadable?mesh.triangles:null});}File.WriteAllText(Path.Combine(output,name+"-native-lod.json"),JsonConvert.SerializeObject(rows));}
    Time.timeScale=0;foreach(var g in groups)g.ForceLOD(Math.Min(lod,g.lodCount-1));yield return null;yield return null;
+   var direction=target.transform.TransformDirection(new Vector3(9,12,13));
+   camera.transform.SetPositionAndRotation(target.transform.position+direction,Quaternion.LookRotation(-direction));
+   camera.ResetWorldToCameraMatrix();
+   camera.ResetProjectionMatrix();
+   if(name=="NA-paint3"){
+    var all=target.GetAllParts().SelectMany(p=>p.GetComponentsInChildren<MeshRenderer>(true)).Distinct().ToArray();
+    var selected=new HashSet<Renderer>(groups.SelectMany(g=>g.GetLODs().SelectMany(l=>l.renderers)));
+    var visible=new HashSet<Renderer>(groups.SelectMany(g=>g.GetLODs()[Math.Min(lod,g.lodCount-1)].renderers));
+    var dump=new List<object>();var block=new MaterialPropertyBlock();
+    foreach(var r in all.Where(r=>r.enabled&&r.gameObject.activeInHierarchy&&(!selected.Contains(r)||visible.Contains(r)))){
+     var mesh=r.GetComponent<MeshFilter>()?.sharedMesh;if(mesh==null||!mesh.isReadable)continue;
+     var verts=mesh.vertices.Select(v=>camera.WorldToViewportPoint(r.transform.TransformPoint(v))).Select(v=>new[]{v.x,v.y,v.z}).ToArray();
+     var uv=mesh.uv.Select(v=>new[]{v.x,v.y}).ToArray();var mats=r.sharedMaterials;
+     for(int sub=0;sub<mesh.subMeshCount&&sub<mats.Length;sub++){
+      var m=mats[sub];if(m==null)continue;r.GetPropertyBlock(block,sub);
+      var tex=block.GetTexture("_Livery")??(m.HasProperty("_Livery")?m.GetTexture("_Livery"):null);
+      dump.Add(new{renderer=r.name,mat=m.name,tex=tex?.name,verts,uv,tri=mesh.GetTriangles(sub)});block.Clear();
+     }
+    }File.WriteAllText(Path.Combine(output,name+"-projection-"+lod+".json"),JsonConvert.SerializeObject(dump));
+   }
    var rt=new RenderTexture(1400,1000,24);var request=new UniversalRenderPipeline.SingleCameraRequest{destination=rt};
    Check(RenderPipeline.SupportsRenderRequest(camera,request),"Native renderer does not support capture requests");RenderPipeline.SubmitRenderRequest(camera,request);var old=RenderTexture.active;RenderTexture.active=rt;var png=new Texture2D(1400,1000,TextureFormat.RGB24,false);png.ReadPixels(new Rect(0,0,1400,1000),0,0);png.Apply();File.WriteAllBytes(Path.Combine(output,name+"-lod"+lod+".png"),png.EncodeToPNG());RenderTexture.active=old;Object.Destroy(png);rt.Release();Object.Destroy(rt);foreach(var g in groups)g.ForceLOD(-1);Time.timeScale=1;
   }
@@ -63,12 +115,13 @@ namespace FS20StreamingVerification {
    airbase=Object.FindObjectsOfType<Airbase>().First(b=>b.CurrentHQ&&!b.CurrentHQ.preventJoin);spawner=Object.FindObjectOfType<Spawner>();camera=Camera.main??Camera.allCameras.FirstOrDefault(c=>c.enabled&&c.targetTexture==null);Check(camera!=null,"Native camera unavailable");Check(SystemInfo.graphicsDeviceType!=GraphicsDeviceType.Null,"A real graphics device is required");
    foreach(var canvas in Object.FindObjectsOfType<Canvas>(true))canvas.enabled=false;workload=new RenderTexture(1400,1000,24);workload.Create();
    yield return new WaitForSecondsRealtime(10);Begin("idle-after-registration");yield return new WaitForSecondsRealtime(5);End(0);
-   foreach(string variant in Environment.GetEnvironmentVariable("FS20_STREAM_FOCUS_CACHE")=="1"?new[]{"T"}:new[]{"B","A","C","T","NA"}){
+   var focus=Environment.GetEnvironmentVariable("FS20_STREAM_FOCUS_CACHE");
+   foreach(string variant in focus=="NA"?new[]{"NA"}:focus=="1"?new[]{"T"}:new[]{"B","A","C","T","NA"}){
     Begin(variant+"-warm-spawn");var timer=Stopwatch.StartNew();var plane=Spawn(variant);yield return WaitPaint(plane);timer.Stop();yield return new WaitForSecondsRealtime(3);End(timer.Elapsed.TotalMilliseconds);
     var definition=plane.definition as AircraftDefinition;int count=definition.aircraftParameters.liveries.Count;
     for(int index=0;index<count;index++){
      Begin(variant+"-paint-"+index);timer.Restart();plane.GetComponent<LiveryBehaviour>().SetKey(new LiveryKey(index));yield return WaitPaint(plane);timer.Stop();yield return new WaitForSecondsRealtime(2);End(timer.Elapsed.TotalMilliseconds);
-     if(variant!="B"&&variant!="C"){Check(PreparedTexture(plane)!=null,"Prepared coat missing on "+variant);ValidateLods(plane);yield return Capture(variant+"-paint"+index,0);yield return Capture(variant+"-paint"+index,variant=="A"?1:2);}
+     if(variant!="B"&&variant!="C"){Check(PreparedTexture(plane)!=null,"Prepared coat missing on "+variant);ValidateLods(plane);if(variant!="A")ValidateWingAtlas(plane);yield return Capture(variant+"-paint"+index,0);yield return Capture(variant+"-paint"+index,variant=="A"?1:2);}
     }
     plane.GetComponent<LiveryBehaviour>().SetKey(new LiveryKey(0));yield return WaitPaint(plane);
     Begin(variant+"-burst5");timer.Restart();for(int i=0;i<5;i++)Spawn(variant);timer.Stop();yield return new WaitForSecondsRealtime(5);End(timer.Elapsed.TotalMilliseconds);ValidateSharedLods();DestroyOwned();yield return new WaitForSecondsRealtime(2);

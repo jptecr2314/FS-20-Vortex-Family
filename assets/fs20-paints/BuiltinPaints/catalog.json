@@ -1,7 +1,7 @@
 {
     "schemaVersion": 2,
     "packageId": "fs20.own-paints",
-    "version": "0.7.0",
+    "version": "0.7.1",
     "author": "FS-20 Vortex Family",
     "basisFile": "fs20-basis.bundle",
     "basisSha256": "fe945fb057f80e37abd52556bf53705c53d896696f5328f6efa8cc1597b75e45",

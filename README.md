@@ -1,4 +1,4 @@
-# FS-20 Vortex Family 0.7.0
+# FS-20 Vortex Family 0.7.1
 
 Optional A/T/NA paints load asynchronously from `BuiltinPaints/` beside the DLL. Install the complete BepInEx folder; replacing only the DLL is insufficient. Three default prefab coats and their neutral basis stay resident. Optional coats and distant vertex-color meshes are shared and retained while native handles or renderers use them, then evicted without global garbage collection. Custom `.fs20paint` packs keep their existing format and location.
 
@@ -126,7 +126,7 @@ see THIRD_PARTY_NOTICES.md. Not affiliated with Shockfront Studios.
 
 A/T/NA each provide two BDF and two PALA paints at 2K output resolution.
 
-The 0.7.0 set uses about 112 MiB compressed mip payload, excluding driver overhead
+The 0.7.1 set uses about 112 MiB compressed mip payload, excluding driver overhead
 
 and custom packs. This is dimension arithmetic, not a measured VRAM peak.
 
@@ -134,4 +134,4 @@ and custom packs. This is dimension arithmetic, not a measured VRAM peak.
 
 ## Paint creator kit
 
-Download `FS-20-Paint-Creator-Kit-0.7.0.zip` from the same release for editable A/T/NA templates, new-wing UV references and the licensed Unity 2022.3.62f2 exporter. The kit is optional and does not enlarge the player package. Custom packs may retain 4K authoring/output where needed; set averageColor in the manifest for the native distant vertex-color finish.
+Download `FS-20-Paint-Creator-Kit-0.7.1.zip` from the same release for editable A/T/NA templates, new-wing UV references and the licensed Unity 2022.3.62f2 exporter. The kit is optional and does not enlarge the player package. Custom packs may retain 4K authoring/output where needed; set averageColor in the manifest for the native distant vertex-color finish.

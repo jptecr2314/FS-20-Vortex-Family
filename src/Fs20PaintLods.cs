@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional {
@@ -19,11 +20,42 @@ namespace Japensou.NuclearOption.VortexConventional {
   }
   // Native far meshes can be GPU-only. Prepare their tiny immutable copies
   // while building definitions, never read GPU buffers during paint selection.
-  internal static void Prepare(GameObject prefab){foreach(var renderer in prefab.GetComponentsInChildren<MeshRenderer>(true)){
+  internal static void Prepare(GameObject prefab){
+   MatchDistantExterior(prefab);
+   foreach(var renderer in prefab.GetComponentsInChildren<MeshRenderer>(true)){
    if(!Painted(renderer))continue;var filter=renderer.GetComponent<MeshFilter>();if(filter==null||filter.sharedMesh==null)continue;
    var source=filter.sharedMesh;if(!source.isReadable){if(!readable.TryGetValue(source,out var copy)){copy=Fs20Geometry.ReadableCopy(source);readable.Add(source,copy);}source=copy;filter.sharedMesh=source;}
    var binding=filter.GetComponent<Fs20LodPaintBinding>()??filter.gameObject.AddComponent<Fs20LodPaintBinding>();binding.Original=source;
   }}
+  private static void MatchDistantExterior(GameObject prefab)
+  {
+   var groups = prefab.GetComponentsInChildren<LODGroup>(true);
+   var distantMaterial = prefab.GetComponentsInChildren<MeshRenderer>(true)
+    .Where(Painted).SelectMany(renderer => renderer.sharedMaterials).FirstOrDefault(Native);
+   if (distantMaterial == null) return;
+
+   foreach (var group in groups)
+   {
+    // Authored groups retain textured LOD0 and LOD1. Use the same
+    // low-detail finish as the retained fuselage on the final level.
+    if (!group.name.StartsWith("FS20T LOD ", StringComparison.Ordinal)) continue;
+    var levels = group.GetLODs();
+    if (levels.Length != 3) continue;
+    foreach (var renderer in levels[2].renderers.OfType<MeshRenderer>())
+    {
+     var slots = renderer.sharedMaterials;
+     bool changed = false;
+     for (int i = 0; i < slots.Length; i++)
+     {
+      var material = slots[i];
+      if (!Fs20PreparedLiveries.WingMaterial(material) && !Fs20PreparedLiveries.BodyMaterial(material)) continue;
+      slots[i] = distantMaterial;
+      changed = true;
+     }
+     if (changed) renderer.sharedMaterials = slots;
+    }
+   }
+  }
   internal static void Apply(MeshRenderer renderer,Fs20PreparedLiveries.Paint paint){
    var filter=renderer.GetComponent<MeshFilter>();if(filter==null||filter.sharedMesh==null)return;
    var binding=filter.GetComponent<Fs20LodPaintBinding>()??filter.gameObject.AddComponent<Fs20LodPaintBinding>();

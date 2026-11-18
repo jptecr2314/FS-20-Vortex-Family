@@ -1,19 +1,14 @@
 {
   "passed": true,
-  "version": "0.7.0",
-  "dllSha256": "ae06c05e010e3cc8a9a4f2b3c165816e85180497facfde972b7a3bae0a73f590",
+  "version": "0.7.1",
+  "dllSha256": "fb4d78eea7c31b886ca37c00d3ab96dce090d11083a5fd2b617684a2dee25726",
   "nativeContractChecks": 183,
-  "nativeRenderedGameChecks": 922,
-  "nativeSteamProcessChecks": 31,
+  "nativeRenderedGameChecks": 3556,
   "twoPcInternetTested": false,
   "paintCount": 12,
-  "preparedTextureCount": 21,
+  "builtInBundleCount": 13,
   "startupPreparedTextureCount": 6,
-  "startupPaintPayloadMiB": 32,
-  "totalPaintPayloadMiB": 112,
   "totalVramMeasured": false,
-  "lodColorGeometryAlphaAndSharingVerified": true,
   "prerelease": true,
-  "nativeCreatorPackChecks": 387,
-  "creatorKitFreshExportPassed": true
+  "nativeSteamProcessChecks": 31
 }
