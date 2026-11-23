@@ -32,6 +32,7 @@ namespace Japensou.NuclearOption.VortexConventional
                     throw new InvalidOperationException("Native FS-20A donor layout changed.");
                 // Original wing/fin/exterior geometry and engine thrust remain.
                 VortexConventionalPlugin.RemoveVtolHardware(prefab.transform, swivel);
+                Fs20WingOutletCleanup.Apply(prefab.transform, false);
                 foreach (string path in new[]
                 {
                     "engine",
@@ -116,4 +117,5 @@ namespace Japensou.NuclearOption.VortexConventional
     {
     }
 }
+
 

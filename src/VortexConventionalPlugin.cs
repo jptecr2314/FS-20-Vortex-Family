@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.7.1")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.7.2")]
     [BepInDependency("com.nikkorap.blueprinter")]
     [BepInDependency("com.offiry.qol", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInIncompatibility(Fs20IdentityMigration.PreviousId)]
@@ -100,6 +100,9 @@ namespace Japensou.NuclearOption.VortexConventional
             harmony.PatchAll(typeof(Fs20NANightPaint.PartLivery));
             harmony.PatchAll(typeof(Fs20NANightPaint.NativePaint));
             harmony.PatchAll(typeof(Fs20FlightController.PrepareEnvelope));
+            harmony.PatchAll(typeof(Fs20ExtraWingStations.Spawn));
+            harmony.PatchAll(typeof(Fs20ExtraWingStations.Saved));
+            harmony.PatchAll(typeof(Fs20FlightController.ContinuousPitchDerivative));
             harmony.PatchAll(typeof(Fs20AiGuidance.GuidanceScope));
             harmony.PatchAll(typeof(Fs20AiGuidance.GunPoint));
             harmony.PatchAll(typeof(Fs20AiGuidance.AttitudeOutput));
@@ -257,6 +260,7 @@ namespace Japensou.NuclearOption.VortexConventional
                     throw new InvalidOperationException("Native FS-20 prefab layout changed.");
                 RemoveVtolHardware(prefab.transform, swivel);
                 Fs20Geometry.Apply(prefab.transform);
+                Fs20WingOutletCleanup.Apply(prefab.transform, true);
                 ConfigureMassAndStructure(prefab.transform);
                 Fs20ExpandedBays.Install(encyclopedia, prefab.transform, true);
                 Fs20Tuning.Configure(prefab.transform);
@@ -294,6 +298,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 // never expose a selectable C with a half-built hook assembly.
                 Fs20TailHook.Add(encyclopedia, definitionCopy);
                 Fs20ExpandedBays.AddCarrierWeapons(encyclopedia, prefab.transform);
+                Fs20ExtraWingStations.Install(encyclopedia, prefab.transform, "C");
                 Fs20ExteriorPaint.Install(prefab.transform);
                 prefab.SetActive(true);
                 definitionCopy.mass = prefab.GetComponentsInChildren<UnitPart>(true).Sum(part => part.GetMass());
@@ -460,3 +465,6 @@ namespace Japensou.NuclearOption.VortexConventional
     {
     }
 }
+
+
+

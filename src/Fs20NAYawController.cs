@@ -17,15 +17,19 @@ namespace Japensou.NuclearOption.VortexConventional
         [SerializeField] private Turbojet engine;
         [SerializeField] private Transform thrustPoint;
         [SerializeField] private UnitPart[] parts;
+        [SerializeField] private AeroPart[] pitchParts;
+        [SerializeField] private float[] pitchCoefficients;
         private readonly List<Rigidbody> bodies=new List<Rigidbody>(48);
         private bool reported;
         private float trim;
         private float previousRate,rateFeedforward;
         private bool rateInitialized;
         private float gyroscopicTorque;
+        private float pitchGyroscopicTorque, pitchFeedforward;
         private float command;
         public float SideslipDegrees {get;private set;}
         public float Output=>command;
+        public float PitchFeedforward=>pitchFeedforward;
         private static readonly AccessTools.FieldRef<ControlSurface,float> MaxSplit=AccessTools.FieldRefAccess<ControlSurface,float>("maxSplit");
         private static readonly AccessTools.FieldRef<ControlSurface,float> Side=AccessTools.FieldRefAccess<ControlSurface,float>("yawSplitFactor");
         private static readonly AccessTools.FieldRef<ControlSurface,float> Drag=AccessTools.FieldRefAccess<ControlSurface,float>("splitDrag");
@@ -38,6 +42,17 @@ namespace Japensou.NuclearOption.VortexConventional
             thrustPoint=nozzle==null?null:(Transform)Fs20Tuning.Field(typeof(JetNozzle),"thrustTransform").GetValue(nozzle);
             splits=root.GetComponentsInChildren<ControlSurface>(true).Where(s=>MaxSplit(s)>0f).ToArray();
             parts=root.GetComponentsInChildren<UnitPart>(true);
+            var parameters=((AircraftDefinition)aircraft.definition).aircraftParameters;
+            pitchParts=root.GetComponentsInChildren<AeroPart>(true).Where(p=>p.GetComponent<ControlSurface>()!=null).ToArray();
+            pitchCoefficients=new float[pitchParts.Length];
+            var all=root.GetComponentsInChildren<AeroPart>(true);float mass=all.Sum(p=>p.mass);
+            Vector3 center=Vector3.zero;foreach(var p in all)center+=p.mass*Fs20TControlCalibration.MassCenter(p);center/=Mathf.Max(1f,mass);
+            for(int i=0;i<pitchParts.Length;i++){
+                var p=pitchParts[i];var c=p.GetComponent<ControlSurface>();var visible=(GameObject)Fs20Tuning.Field(typeof(ControlSurface),"visibleMesh").GetValue(c);
+                if(visible==null)continue;
+                var marker=p.GetComponent<Fs20TPartPhysics>();var point=marker==null?Fs20TControlCalibration.MassCenter(p)+visible.transform.rotation*(Vector3)Fs20Tuning.Field(typeof(AeroPart),"centerOfLift").GetValue(p):marker.WorldForcePoint;
+                pitchCoefficients[i]=Fs20TControlCalibration.Derivative(root,parameters,p,c,visible.transform.rotation,point-center,true);
+            }
         }
         internal static float CoordinatedRate(Vector3 flow,Vector3 angular,Vector3 gravity)
         {
@@ -61,6 +76,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 momentum+=rotation*Vector3.Scale(tensor,inverse*omega)+rb.mass*Vector3.Cross(arm,Vector3.Cross(omega,arm));
             }
             gyroscopicTorque=Vector3.Dot(Vector3.Cross(omega,momentum),up);
+            pitchGyroscopicTorque=Vector3.Dot(Vector3.Cross(omega,momentum),reference.rotation*Vector3.right);
         }
         private static float Acceleration(float beta,float rate,float coordinated,float pilot,float frequency)
         {
@@ -102,6 +118,14 @@ namespace Japensou.NuclearOption.VortexConventional
             var angular=inverse*body.angularVelocity;
             float coordinated=CoordinatedRate(flow,angular,inverse*Physics.gravity);
             Dynamics(body,out var center,out float inertia);
+            // Cancel roll/yaw gyroscopic pitch coupling through the real elevons.
+            // Authority is pressure-scaled and excludes lost control surfaces.
+            float pitchAuthority=0f;
+            if(pitchParts!=null)for(int i=0;i<pitchParts.Length;i++)if(!Fs20NARecon.Lost(pitchParts[i]))pitchAuthority+=pitchCoefficients[i];
+            pitchAuthority=Mathf.Abs(pitchAuthority)*.5f*aircraft.airDensity*relative.sqrMagnitude;
+            float desiredPitch=pitchAuthority>1f?Mathf.Clamp(pitchGyroscopicTorque/pitchAuthority,-.35f,.35f):0f;
+            pitchFeedforward=Mathf.MoveTowards(pitchFeedforward,desiredPitch,Mathf.Max(0f,dt)*3f);
+            inputs.pitch=Mathf.Clamp(inputs.pitch+pitchFeedforward,-1f,1f);
             float frequency=Mathf.Clamp(1.15f*relative.magnitude/80f*Mathf.Sqrt(Mathf.Max(.01f,aircraft.airDensity)/1.167f),.8f,9f);
             float beta=SideslipDegrees*Mathf.Deg2Rad;
             float desiredRate=coordinated+Mathf.Clamp(raw.y,-1f,1f)*.65f;

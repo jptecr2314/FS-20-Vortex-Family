@@ -60,6 +60,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 definition.mass = mass.After;
                 definition.unitPrefab = prefab;
                 ((Unit)aircraft).definition = definition;
+                Fs20ExtraWingStations.Install(encyclopedia, prefab.transform, "T");
                 network.PrefabHash = Hash;
                 Fs20PaintLods.Prepare(prefab);
                 prefab.SetActive(true);
@@ -93,3 +94,4 @@ namespace Japensou.NuclearOption.VortexConventional
         }
     }
 }
+

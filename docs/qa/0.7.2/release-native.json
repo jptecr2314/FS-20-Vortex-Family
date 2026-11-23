@@ -1,0 +1,48 @@
+{
+  "completed": true,
+  "error": null,
+  "product": "FS20AIControl",
+  "scope": "Private native A/C visual cleanup, spawn, UV and ownership check. No installed game changed.",
+  "cases": [
+    {
+      "variant": "A",
+      "finished": true,
+      "failed": false,
+      "cleaned": true,
+      "detachedSkinRetained": true,
+      "hardpointGroups": 5
+    },
+    {
+      "variant": "C",
+      "finished": true,
+      "failed": false,
+      "cleaned": true,
+      "detachedSkinRetained": true,
+      "hardpointGroups": 8
+    },
+    {
+      "variant": "B",
+      "finished": true,
+      "failed": false,
+      "cleaned": false,
+      "detachedSkinRetained": true,
+      "hardpointGroups": 5
+    },
+    {
+      "variant": "T",
+      "finished": true,
+      "failed": false,
+      "cleaned": false,
+      "detachedSkinRetained": true,
+      "hardpointGroups": 6
+    },
+    {
+      "variant": "NA",
+      "finished": true,
+      "failed": false,
+      "cleaned": false,
+      "detachedSkinRetained": true,
+      "hardpointGroups": 6
+    }
+  ]
+}

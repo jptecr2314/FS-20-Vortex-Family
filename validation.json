@@ -1,14 +1,22 @@
 {
   "passed": true,
-  "version": "0.7.1",
-  "dllSha256": "fb4d78eea7c31b886ca37c00d3ab96dce090d11083a5fd2b617684a2dee25726",
-  "nativeContractChecks": 183,
-  "nativeRenderedGameChecks": 3556,
-  "twoPcInternetTested": false,
+  "version": "0.7.2",
+  "dllSha256": "500f13c43ca1279d13d0c2353294bc93facf973ad6f04497f21a62ef7ed483a7",
+  "referenceBehaviorChecks": 2811,
+  "releaseNativeSpawnCases": 5,
+  "releaseOnlyVersionDelta": true,
+  "preservedMethodsExceptVersionStrings": 1711,
+  "unchangedEmbeddedResources": 17,
   "paintCount": 12,
   "builtInBundleCount": 13,
-  "startupPreparedTextureCount": 6,
-  "totalVramMeasured": false,
+  "twoPcInternetTested": false,
+  "newFpsBenchmark": false,
   "prerelease": true,
-  "nativeSteamProcessChecks": 31
+  "historicalValidation": {
+    "version": "0.7.1",
+    "nativeContractChecks": 183,
+    "nativeRenderedGameChecks": 3556,
+    "nativeSteamProcessChecks": 31
+  },
+  "scope": "Delta tests; historical counts are not reruns of the full 0.7.2 matrix"
 }

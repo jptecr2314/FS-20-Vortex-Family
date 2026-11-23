@@ -1,5 +1,5 @@
 {
-  "version": "0.7.1",
+  "version": "0.7.2",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
   "parent": false,
@@ -125,7 +125,9 @@
     "src/Fs20AiGuidance.cs",
     "src/Fs20NAAimPolicy.cs",
     "src/Fs20PaintCache.cs",
-    "src/Fs20PaintLods.cs"
+    "src/Fs20PaintLods.cs",
+    "src/Fs20ExtraWingStations.cs",
+    "src/Fs20WingOutletCleanup.cs"
   ],
   "resources": [
     {
@@ -187,6 +189,14 @@
     {
       "path": "assets/fs20-paints/BuiltinPaints/catalog.json",
       "name": "Fs20PaintCatalog.json"
+    },
+    {
+      "path": "assets/fs20-extra-stations/Fs20ExtraWingStations.json",
+      "name": "VortexConventional.Fs20ExtraWingStations.json"
+    },
+    {
+      "path": "assets/fs20-conventional/Fs20WingOutletCleanup.json",
+      "name": "Fs20WingOutletCleanup.json"
     }
   ]
 }

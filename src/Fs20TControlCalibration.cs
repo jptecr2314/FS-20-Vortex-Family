@@ -40,7 +40,7 @@ namespace Japensou.NuclearOption.VortexConventional
             return result;
         }
 
-        private static Vector3 MassCenter(AeroPart part)
+        internal static Vector3 MassCenter(AeroPart part)
         {
             var marker = part.GetComponent<Fs20TPartPhysics>();
             if (marker != null) return marker.WorldMassCenter;
@@ -48,7 +48,7 @@ namespace Japensou.NuclearOption.VortexConventional
             return center == null ? part.transform.position : center.position;
         }
 
-        private static float Derivative(Transform root, AircraftParameters parameters, AeroPart part,
+        internal static float Derivative(Transform root, AircraftParameters parameters, AeroPart part,
             ControlSurface control, Quaternion neutral, Vector3 arm, bool pitch)
         {
             const float input = .02f;

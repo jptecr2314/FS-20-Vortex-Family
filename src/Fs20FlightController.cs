@@ -1,5 +1,8 @@
 using System;
 using System.Reflection;
+using System.Reflection.Emit;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Linq;
 using HarmonyLib;
 using NuclearOption.Jobs;
@@ -34,12 +37,23 @@ namespace Japensou.NuclearOption.VortexConventional
             float blend = Mathf.Lerp((float)NativeLimitBlend.GetValue(fbw), 1f, Time.fixedDeltaTime);
             return Mathf.Lerp((float)NativePitchRate.GetValue(fbw) / Mathf.Max(1f, ceiling), physical, blend);
         }
-        internal static void RecoverHardPitch(ControlsFilter filter, bool hard)
+        internal static void TrackProtection(ControlsFilter filter, Aircraft aircraft, float normalG, float alpha, float limitG, float limitAlpha, float weight, float loadRate)
         {
-            if (!hard) return;
+            if (weight <= 0f || !float.IsFinite(normalG) || !float.IsFinite(alpha)) return;
+            // A gust or coupled roll can create an overload with neutral stick.
+            // Track the actual load through the native actuator state instead of
+            // erasing that state. The correction is continuous and rate bounded;
+            // it vanishes inside the envelope and never alters the raw roll axis.
+            float predictedLoad = normalG + .20f * loadRate;
+            float loadError = Mathf.Max(0f, predictedLoad - limitG - .25f) + Mathf.Min(0f, predictedLoad + limitG * .5f + .25f);
+            float incidenceError = Mathf.Max(0f, alpha - limitAlpha - .5f);
             var fbw = filter.GetFlyByWire();
-            if ((float)PitchBias.GetValue(fbw) < 0f) PitchBias.SetValue(fbw, 0f);
-            if ((float)PitchIntegral.GetValue(fbw) > 0f) PitchIntegral.SetValue(fbw, 0f);
+            float corner = Mathf.Max(1f, (float)NativeCorner.GetValue(fbw));
+            float pressure = aircraft.speed * aircraft.speed * aircraft.airDensity / (corner * corner * 1.225f);
+            float correction = Mathf.Clamp(.6f * loadError + .15f * incidenceError, -2f, 2f) / Mathf.Max(1f, pressure);
+            if (Mathf.Abs(correction) < .00001f) return;
+            float bias = (float)PitchBias.GetValue(fbw);
+            PitchBias.SetValue(fbw, Mathf.Clamp(bias + correction * Mathf.Clamp01(weight) * Time.fixedDeltaTime, -1f, 1f));
         }
         internal static void LandingSchedule(ControlsFilter filter, Fs20LandingEnvelope landing, float basePitch, float baseRoll, float baseAlpha)
         {
@@ -112,9 +126,9 @@ namespace Japensou.NuclearOption.VortexConventional
             Set(flyByWire, "alphaLimiter", Fs20FlightEnvelope.MaximumAlpha);
             // Native multiplier is 1 - min(alpha excess, 10) * strength.
             // Values above .1 can reverse the requested rate beyond the alpha limit.
-            Set(flyByWire, "alphaLimiterStrength", 0.1f);
+            Set(flyByWire, "alphaLimiterStrength", 0.08f);
             Set(flyByWire, "pFactorFast", 9.2f);
-            Set(flyByWire, "dFactorFast", 1.05f);
+            Set(flyByWire, "dFactorFast", 1.6f);
             Set(flyByWire, "maxRollAngularVel", Fs20FlightEnvelope.CombatRollRate);
             Set(flyByWire, "rollTightness", .75f);
             Set(flyByWire, "rollTrimRate", .02f);
@@ -174,6 +188,12 @@ namespace Japensou.NuclearOption.VortexConventional
         private Turbojet engine;
         private readonly Fs20FlightEnvelope envelope = new Fs20FlightEnvelope();
         private readonly Fs20LandingEnvelope landing = new Fs20LandingEnvelope();
+        private float configuredG = Fs20FlightEnvelope.MaximumG, configuredAlpha = Fs20FlightEnvelope.MaximumAlpha;
+        internal void CaptureSettings(ControlsFilter filter)
+        {
+            configuredG = (float)GLimit.GetValue(filter.GetFlyByWire());
+            configuredAlpha = (float)Fs20Tuning.Field(typeof(ControlsFilter.FlyByWire), "alphaLimiter").GetValue(filter.GetFlyByWire());
+        }
         private static readonly FieldInfo GLimit = Fs20Tuning.Field(typeof(ControlsFilter.FlyByWire), "gLimitPositive");
         private static readonly FieldInfo Cockpit = Fs20Tuning.Field(typeof(Aircraft), "cockpit");
         internal float FlapDegrees { get; private set; }
@@ -185,6 +205,7 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             aircraft = GetComponent<Aircraft>();
             engine = GetComponentInChildren<Turbojet>(true);
+            CaptureSettings(GetComponentInChildren<ControlsFilter>(true));
         }
 
         internal void Sample()
@@ -233,16 +254,15 @@ namespace Japensou.NuclearOption.VortexConventional
             EquivalentAirspeed=Fs20FlightEnvelope.EquivalentSpeed(Airspeed,aircraft.airDensity);
             float alpha = -Mathf.Atan2(airflow.y, Mathf.Max(1f, airflow.z)) * Mathf.Rad2Deg;
             float normalG = Vector3.Dot(aircraft.accel-Physics.gravity/9.81f, body.rotation*Vector3.up);
-            landing.Step(inputs.pitch, inputs.roll, aircraft.speed, aircraft.gearDeployed, (bool)Fs20Tuning.Airborne.GetValue(aircraft), assisted, Time.fixedDeltaTime);
-            Fs20Tuning.LandingSchedule(filter, landing, Fs20FlightEnvelope.CombatPitchRate, Fs20FlightEnvelope.CombatRollRate, Fs20FlightEnvelope.MaximumAlpha);
-            float ceiling = Mathf.Min(Fs20FlightEnvelope.TargetLimit(Airspeed, aircraft.airDensity, aircraft.GetMass(), aircraft.gearDeployed), Mathf.Lerp(11f, 4f, landing.Blend));
-            ceiling = Mathf.Min(ceiling, envelope.LimitG + 2f * Mathf.Clamp(Time.fixedDeltaTime, 0f, .1f));
-            envelope.Step(landing.Pitch, landing.Roll, Airspeed, aircraft.airDensity, aircraft.GetMass(), alpha, normalG, aircraft.gearDeployed, assisted, Time.fixedDeltaTime,
+            float ceiling = Mathf.Min(configuredG, Fs20FlightEnvelope.TargetLimit(Airspeed, aircraft.airDensity, aircraft.GetMass(), aircraft.gearDeployed));
+            GLimit.SetValue(filter.GetFlyByWire(), ceiling);
+            envelope.Step(inputs.pitch, inputs.roll, Airspeed, aircraft.airDensity, aircraft.GetMass(), alpha, normalG, aircraft.gearDeployed, assisted, Time.fixedDeltaTime,
                 Fs20Tuning.NativeRatePerG(filter, aircraft, ceiling),
                 -Vector3.Dot(body.angularVelocity, body.rotation * Vector3.right),
-                Vector3.Dot(-Physics.gravity / 9.81f, body.rotation * Vector3.up), landing.Blend);
-            GLimit.SetValue(filter.GetFlyByWire(), Mathf.Min(envelope.LimitG, Mathf.Lerp(11f, 4f, landing.Blend)));
-            Fs20Tuning.RecoverHardPitch(filter, assisted && envelope.HardProtection);
+                Vector3.Dot(-Physics.gravity / 9.81f, body.rotation * Vector3.up), 0f,
+                Vector3.Dot(aircraft.accel * 9.81f, body.rotation * airflow.normalized), configuredG, configuredAlpha);
+            if (assisted && (bool)Fs20Tuning.Airborne.GetValue(aircraft))
+                Fs20Tuning.TrackProtection(filter, aircraft, normalG, alpha, envelope.LimitG, configuredAlpha, 1f, envelope.LoadRate);
             inputs.pitch = envelope.Pitch;
             inputs.roll = envelope.Roll;
         }
@@ -269,6 +289,55 @@ namespace Japensou.NuclearOption.VortexConventional
                     controller.PrepareControls(__instance, __0, __2, active && ___aircraft.radarAlt>=___minAlt);
                 else
                     aController.PrepareControls(__instance, __0, __2, active && ___aircraft.radarAlt>=___minAlt);
+            }
+        }
+
+        [HarmonyPatch(typeof(ControlsFilter.FlyByWire), "Filter")]
+        internal static class ContinuousPitchDerivative
+        {
+            private sealed class History { public History() {} internal bool Initialized; internal float Rate, Time; }
+            private static readonly ConditionalWeakTable<ControlsFilter.FlyByWire, History> Histories =
+                new ConditionalWeakTable<ControlsFilter.FlyByWire, History>();
+
+            private static float PreviousError(float nativePrevious, ControlsFilter.FlyByWire filter, Aircraft aircraft)
+            {
+                if (aircraft == null || (aircraft.GetComponent<Fs20AFlightController>() == null &&
+                    aircraft.GetComponent<Fs20FlightController>() == null && aircraft.GetComponent<Fs20TFlightController>() == null))
+                    return nativePrevious;
+                var history = Histories.GetOrCreateValue(filter);
+                float current = filter.GetPitchAngVel();
+                float previous = history.Initialized && Time.fixedTime - history.Time <= 2f * Time.fixedDeltaTime ? history.Rate : current;
+                history.Rate = current; history.Time = Time.fixedTime; history.Initialized = true;
+                // Differentiate the measured rate, not a pilot/setpoint step.
+                // Keep the native P/I error bounds, but do not let those bounds
+                // erase damping once a rate excursion exceeds .25 rad/s. The
+                // native (currentError - previousError) then equals delta(rate).
+                float error = Mathf.Clamp(current - filter.GetTargetPitchAngVel(), -.25f, .25f);
+                return error - (current - previous);
+            }
+
+            private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var field = AccessTools.Field(typeof(ControlsFilter.FlyByWire), "pPrev");
+                var correction = AccessTools.Method(typeof(ContinuousPitchDerivative), nameof(PreviousError));
+                int replacements = 0;
+                foreach (var instruction in instructions)
+                {
+                    yield return instruction;
+                    if (instruction.opcode == OpCodes.Ldfld && Equals(instruction.operand, field))
+                    {
+                        yield return new CodeInstruction(OpCodes.Ldarg_0);
+                        yield return new CodeInstruction(OpCodes.Ldarg_1);
+                        yield return new CodeInstruction(OpCodes.Call, correction);
+                        replacements++;
+                    }
+                }
+                if (replacements != 1) throw new InvalidOperationException("Unexpected native pitch derivative layout; FS20 FCS patch was not applied.");
+            }
+
+            private static void Postfix(Aircraft __0, ControlInputs __1)
+            {
+                if (__0 != null) __0.GetComponent<Fs20TFlightController>()?.ObserveNativeRoll(__1.roll);
             }
         }
 

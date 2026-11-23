@@ -8,18 +8,20 @@ namespace Japensou.NuclearOption.VortexConventional
         internal const float MaximumG = 11f;
         internal const float BaselineG = 9f;
         internal const float ReferenceMass = 13500f;
-        internal float LimitG { get; private set; } = BaselineG;
+        internal float LimitG { get; private set; } = MaximumG;
         internal float Pitch { get; private set; }
         internal float Roll { get; private set; }
 
         private readonly Fs20PitchGovernor governor = new Fs20PitchGovernor();
         internal bool HardProtection => governor.HardProtection;
+        internal float LoadRate => governor.LoadRate;
         internal void Step(float pitch, float roll, float mass, float alpha, float normalG, bool assisted, float dt,
-            float speed = 200f, float nativeRatePerG = 0f, float pitchRateUp = 0f, float gravityNormalG = 1f, float approachBlend = 0f)
+            float speed = 200f, float nativeRatePerG = 0f, float pitchRateUp = 0f, float gravityNormalG = 1f, float approachBlend = 0f,
+            float speedRate = 0f, float configuredLimit = MaximumG, float alphaLimit = Fs20FlightEnvelope.MaximumAlpha)
         {
+            LimitG = Math.Min(Math.Max(1f, configuredLimit), MaximumG * ReferenceMass / Math.Max(ReferenceMass, mass));
             if (!assisted)
             {
-                LimitG = BaselineG;
                 Pitch = pitch;
                 Roll = roll;
                 governor.Reset();
@@ -27,14 +29,9 @@ namespace Japensou.NuclearOption.VortexConventional
             }
 
             float step = Math.Max(0f, Math.Min(.1f, dt));
-            float ceiling = MaximumG * ReferenceMass / Math.Max(ReferenceMass, mass);
-            LimitG = Math.Min(ceiling, LimitG + 2f * step);
-            float alphaReserve = 1f - Smooth((alpha - 18f) / 6f);
-            float applied = Math.Min(LimitG, 11f - 7f * Math.Max(0f, Math.Min(1f, approachBlend)));
-            float alphaLimit = 24f - 6f * Math.Max(0f, Math.Min(1f, approachBlend));
-            Pitch = governor.Step(pitch, speed, normalG, alpha, applied, alphaLimit, step,
-                nativeRatePerG > 0f ? nativeRatePerG : 9.81f / Math.Max(30f, speed), pitchRateUp, gravityNormalG);
-            Roll = roll * (.75f + .25f * alphaReserve);
+            Pitch = governor.Step(pitch, speed, normalG, alpha, LimitG, alphaLimit, step,
+                nativeRatePerG > 0f ? nativeRatePerG : 9.81f / Math.Max(30f, speed), pitchRateUp, gravityNormalG, speedRate);
+            Roll = roll;
         }
 
         private static float Smooth(float x)

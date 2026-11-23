@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "variants": [
+    {
+      "variant": "A",
+      "changedMeshes": [
+        "engine/wing1b_L/wing2b_L",
+        "engine/wing1b_R/wing2b_R",
+        "wing1a_L/wing2a_L",
+        "wing1a_L/wing2a_L/wingtip_L",
+        "wing1a_R/wing2a_R",
+        "wing1a_R/wing2a_R/wingtip_R"
+      ],
+      "unchangedMeshes": 153,
+      "trianglesBefore": 3392,
+      "trianglesAfter": 4130
+    },
+    {
+      "variant": "B",
+      "changedMeshes": [],
+      "unchangedMeshes": 134,
+      "trianglesBefore": 0,
+      "trianglesAfter": 0
+    },
+    {
+      "variant": "C",
+      "changedMeshes": [
+        "engine/wing1b_L/wing2b_L",
+        "engine/wing1b_R/wing2b_R",
+        "wing1a_L/wing2a_L",
+        "wing1a_L/wing2a_L/wingtip_L",
+        "wing1a_R/wing2a_R",
+        "wing1a_R/wing2a_R/wingtip_R"
+      ],
+      "unchangedMeshes": 154,
+      "trianglesBefore": 3392,
+      "trianglesAfter": 4130
+    },
+    {
+      "variant": "T",
+      "changedMeshes": [],
+      "unchangedMeshes": 332,
+      "trianglesBefore": 0,
+      "trianglesAfter": 0
+    }
+  ],
+  "physicsProfilesIdentical": true,
+  "scope": "Geometry/UV/native metadata comparison, not a new flight-controller test"
+}

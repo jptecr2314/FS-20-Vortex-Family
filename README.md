@@ -1,4 +1,6 @@
-# FS-20 Vortex Family 0.7.1
+# FS-20 Vortex Family 0.7.2
+
+New in 0.7.2: smoother protected player pitch control on A/C/T/NA; one additional underwing pylon per side on C/T; missile stations at both C wingtips with relocated NAV lights; removal of the obsolete wing VTOL outlet fairings and paint gaps on A/C. The FS-20A VS study is not included.
 
 Optional A/T/NA paints load asynchronously from `BuiltinPaints/` beside the DLL. Install the complete BepInEx folder; replacing only the DLL is insufficient. Three default prefab coats and their neutral basis stay resident. Optional coats and distant vertex-color meshes are shared and retained while native handles or renderers use them, then evicted without global garbage collection. Custom `.fs20paint` packs keep their existing format and location.
 

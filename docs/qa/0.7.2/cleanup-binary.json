@@ -1,0 +1,30 @@
+{
+  "candidate": "E41D34D5A95C258FDC4839C2E0B43A3E25D25C004D17E74261A0E95A4F9938B6",
+  "scope": "Only A/C registration calls changed; FCS, other geometry methods, damage, paint, vapor, pylons and B/T/NA runtime preserved",
+  "installed": false,
+  "layout": "1B6A12A86F4F6C57A887FB7A5B9C7CA9907F912C66F91850F364A399049F85AF",
+  "preservedMethods": 1678,
+  "preservedResources": [
+    "Fs20NA_pattern_body.png",
+    "Fs20NA_pattern_wing.png",
+    "Fs20Vapor.bundle",
+    "Fs20TNativePaintUv.png",
+    "Fs20T.bin",
+    "Fs20TDetail.png",
+    "Fs20TFinishNormal.png",
+    "Fs20TakeoffGrids.json",
+    "Fs20Internals.bin",
+    "Fs20InteriorUv.bin",
+    "Fs20NA_marks_bdf_body.png",
+    "Fs20NA_marks_bdf_wing.png",
+    "Fs20NA_marks_pala_body.png",
+    "Fs20NA_marks_pala_wing.png",
+    "Fs20PaintCatalog.json",
+    "VortexConventional.Fs20ExtraWingStations.json"
+  ],
+  "changedMethods": [
+    "Japensou.NuclearOption.VortexConventional.VortexConventionalPlugin::Register",
+    "Japensou.NuclearOption.VortexConventional.Fs20AirframeA::Register"
+  ],
+  "baseline": "EA7D7784BC4FB242C9E2F57F79959A018D49AFA801849DC7BA106E32E1DCC290"
+}

@@ -1,3 +1,11 @@
+# 0.7.2 - 2026-11-23
+
+- Continuous A/C/T/NA pitch reference and measured-rate damping retain protection, trim and roll authority without repeatedly resetting player pull commands.
+- C/T gain one underwing station per side. New stations accept the tested native single missile and 250/500 kg bomb carriers; C wingtips accept single air-to-air missiles. Existing loadout indices stay intact.
+- C NAV lights follow the fixed wing skin; loaded spawn spacing includes tip missiles.
+- A/C lower wing skins close the obsolete B VTOL outlet cutouts, with atlas-aware UV boundaries and intact structural owners.
+- Keeps all built-in paints and asynchronous loading.
+
 # Changelog
 
 ## 0.7.1

@@ -1,0 +1,10 @@
+{
+  "dllSha256": "500F13C43CA1279D13D0C2353294BC93FACF973AD6F04497F21A62EF7ED483A7",
+  "version": "0.7.2",
+  "passed": true,
+  "scope": "Version-only delta from installed and locally tested candidate; not a new complete flight matrix",
+  "identicalResources": 17,
+  "methodsUnchangedExceptVersionStrings": 1711,
+  "validatedBaselineSha256": "E41D34D5A95C258FDC4839C2E0B43A3E25D25C004D17E74261A0E95A4F9938B6",
+  "fieldConstantsPreserved": true
+}

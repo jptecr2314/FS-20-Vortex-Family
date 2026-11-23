@@ -51,8 +51,8 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             float differential = Clamp(roll, -1f, 1f) * side * (outer ? 30f : 18f);
             float symmetric = -Clamp(pitch, -1f, 1f) * (outer ? 26f : 36f);
-            float scale = Math.Min(1f, ElevonTravel / Math.Max(.001f, Math.Abs(symmetric) + Math.Abs(differential)));
-            return (symmetric + differential) * scale;
+            symmetric = Clamp(symmetric, -ElevonTravel + Math.Abs(differential), ElevonTravel - Math.Abs(differential));
+            return symmetric + differential;
         }
     }
 }

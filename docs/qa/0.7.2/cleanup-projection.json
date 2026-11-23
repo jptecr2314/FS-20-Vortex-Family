@@ -1,0 +1,82 @@
+{
+  "passed": true,
+  "stats": [
+    {
+      "path": "wing1a_L/wing2a_L",
+      "trianglesBefore": 730,
+      "trianglesAfter": 518,
+      "planarAreaBefore": 1.6615468705037841,
+      "planarAreaAfter": 1.6615468705037841,
+      "simplificationErrorM": 2.4027400513659813e-07,
+      "charts": {
+        "wing1a_R/wing2a_R": 123
+      }
+    },
+    {
+      "path": "engine/wing1b_L/wing2b_L",
+      "trianglesBefore": 572,
+      "trianglesAfter": 926,
+      "planarAreaBefore": 2.0086600164305537,
+      "planarAreaAfter": 2.0086600166667616,
+      "simplificationErrorM": 3.159182597300969e-05,
+      "charts": {
+        "wing1a_R/wing2a_R/wingtip_R": 18,
+        "engine/wing1b_R/wing2b_R": 178,
+        "wing1a_R": 1,
+        "wing1a_R/wing2a_R": 30
+      }
+    },
+    {
+      "path": "wing1a_L/wing2a_L/wingtip_L",
+      "trianglesBefore": 394,
+      "trianglesAfter": 600,
+      "planarAreaBefore": 0.9855687140498048,
+      "planarAreaAfter": 0.9855687144161087,
+      "simplificationErrorM": 1.8631100829225034e-05,
+      "charts": {
+        "wing1a_R/wing2a_R/wingtip_R": 53,
+        "wing1a_R/wing2a_R": 41,
+        "engine/wing1b_R/wing2b_R": 10
+      }
+    },
+    {
+      "path": "wing1a_R/wing2a_R",
+      "trianglesBefore": 730,
+      "trianglesAfter": 518,
+      "planarAreaBefore": 1.6615468705037841,
+      "planarAreaAfter": 1.6615468705037841,
+      "simplificationErrorM": 2.4027400513659813e-07,
+      "charts": {
+        "wing1a_L/wing2a_L": 123
+      }
+    },
+    {
+      "path": "engine/wing1b_R/wing2b_R",
+      "trianglesBefore": 572,
+      "trianglesAfter": 1022,
+      "planarAreaBefore": 2.0086600164305537,
+      "planarAreaAfter": 2.0086600183517476,
+      "simplificationErrorM": 3.159182597300969e-05,
+      "charts": {
+        "wing1a_L/wing2a_L/wingtip_L": 18,
+        "engine/wing1b_L/wing2b_L": 225,
+        "wing1a_L": 1,
+        "wing1a_L/wing2a_L": 27
+      }
+    },
+    {
+      "path": "wing1a_R/wing2a_R/wingtip_R",
+      "trianglesBefore": 394,
+      "trianglesAfter": 546,
+      "planarAreaBefore": 0.9855687140498048,
+      "planarAreaAfter": 0.9855687140275364,
+      "simplificationErrorM": 1.9345960026839748e-05,
+      "charts": {
+        "wing1a_L/wing2a_L/wingtip_L": 53,
+        "wing1a_L/wing2a_L": 27,
+        "engine/wing1b_L/wing2b_L": 17
+      }
+    }
+  ],
+  "chartMaxErrorPixels": 0.575779021568949
+}
