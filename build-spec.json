@@ -1,5 +1,5 @@
 {
-  "version": "0.7.2",
+  "version": "0.7.3",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
   "parent": false,
@@ -27,7 +27,8 @@
     "Unity.Addressables.dll",
     "Unity.ResourceManager.dll",
     "Mirage.SocketLayer.dll",
-    "Newtonsoft.Json.dll"
+    "Newtonsoft.Json.dll",
+    "Unity.TextMeshPro.dll"
   ],
   "sources": [
     "src/VortexConventionalPlugin.cs",
@@ -127,7 +128,10 @@
     "src/Fs20PaintCache.cs",
     "src/Fs20PaintLods.cs",
     "src/Fs20ExtraWingStations.cs",
-    "src/Fs20WingOutletCleanup.cs"
+    "src/Fs20WingOutletCleanup.cs",
+    "src/Fs20StoresMfd.cs",
+    "src/Fs20WingtipOptions.cs",
+    "src/Fs20WingtipAlignment.cs"
   ],
   "resources": [
     {

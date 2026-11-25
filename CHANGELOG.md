@@ -1,3 +1,12 @@
+# 0.7.3 - 2026-11-25
+
+- A gains wingtip missile rails with relocated NAV lights. A/C rails now offer compatible single-round air-to-air missiles from installed weapon mods, filter out ship/ground-only launchers and duplicate visible choices, and align the round with the rail on attachment.
+- A/C wingtips have a 240 kg limit per rail, including the missile and adapter. The limit applies to selection, AI, saved loads, spawning and native server admission. Previously saved overweight rail loads become empty; other stations keep their payload choices.
+- C/T pylons follow the selected aircraft paint, T station spacing is improved, and middle pylons inherit the inner station's choices, including compatible installed mods. Loadout columns are ordered without changing saved or network station indices.
+- A/C/T/NA stores MFDs reuse the game's native styling and profile assets, with paired right/left station rows and variant-specific stations. Selected weapon-group markers are bright; other attached markers stay dim in their state color. Detached markers disappear. Engine instruments remain separate.
+- Fixed the family selector's native initialization hook so an optional UI integration failure does not prevent variant selection.
+
+
 # 0.7.2 - 2026-11-23
 
 - Continuous A/C/T/NA pitch reference and measured-rate damping retain protection, trim and roll authority without repeatedly resetting player pull commands.

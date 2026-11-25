@@ -19,7 +19,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 !Encyclopedia.Lookup.ContainsKey("JP_FS20_CTOL") || !Encyclopedia.Lookup.ContainsKey(Fs20AirframeA.Key) || !Encyclopedia.Lookup.ContainsKey(Fs20TAirframe.Key) || !Encyclopedia.Lookup.ContainsKey(Fs20NAAirframe.Key) ||
                 !Encyclopedia.WeaponLookup.ContainsKey(Fs20AugerMount.Key))
                 throw new InvalidOperationException("FS-20 aircraft and weapon definitions are not ready.");
-            var text = new StringBuilder("FS20/network/2/0.7.2/A B C T NA\n");
+            var text = new StringBuilder("FS20/network/2/0.7.3/A B C T NA\n");
             text.Append("paint-catalog:").Append(Fs20PreparedLiveries.Signature()).Append("\n");
             using (var hash = SHA256.Create())
             {

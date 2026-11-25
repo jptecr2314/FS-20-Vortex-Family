@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Japensou.NuclearOption.VortexConventional
 {
-    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.7.2")]
+    [BepInPlugin(PluginId, "FS-20 Vortex Family", "0.7.3")]
     [BepInDependency("com.nikkorap.blueprinter")]
     [BepInDependency("com.offiry.qol", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInIncompatibility(Fs20IdentityMigration.PreviousId)]
@@ -101,6 +101,20 @@ namespace Japensou.NuclearOption.VortexConventional
             harmony.PatchAll(typeof(Fs20NANightPaint.NativePaint));
             harmony.PatchAll(typeof(Fs20FlightController.PrepareEnvelope));
             harmony.PatchAll(typeof(Fs20ExtraWingStations.Spawn));
+            // Optional station UI hooks must not prevent the family menu from loading.
+            try { harmony.PatchAll(typeof(Fs20ExtraWingStations.DisplayOrder)); }
+            catch (Exception error) { Logger.LogError("FS-20 loadout column ordering unavailable; continuing family initialization: " + error); }
+            // Optional station UI hooks must not prevent the family menu from loading.
+            try { harmony.PatchAll(typeof(Fs20ExtraWingStations.SelectorOptions)); }
+            catch (Exception error) { Logger.LogError("FS-20 inner/central option synchronization unavailable; continuing family initialization: " + error); }
+            try { harmony.PatchAll(typeof(Fs20StoresMfd.Initialize)); harmony.PatchAll(typeof(Fs20StoresMfd.NativeUpdate)); }
+            catch (Exception error) { Logger.LogError("FS-20 stores MFD hooks unavailable; continuing family initialization: " + error); }
+            try { harmony.PatchAll(typeof(Fs20ExtraWingStations.WingtipChoices)); harmony.PatchAll(typeof(Fs20ExtraWingStations.WingtipValidation)); }
+            catch (Exception error) { Logger.LogError("FS-20 mod wingtip menu synchronization unavailable; continuing family initialization: " + error); }
+            try { harmony.PatchAll(typeof(Fs20ExtraWingStations.WingtipMenu)); harmony.PatchAll(typeof(Fs20ExtraWingStations.WingtipSetValue)); }
+            catch (Exception error) { Logger.LogError("FS-20 wingtip option display compatibility unavailable; continuing family initialization: " + error); }
+            try { harmony.PatchAll(typeof(Fs20WingtipAlignment.Attach)); }
+            catch (Exception error) { Logger.LogError("FS-20 wingtip alignment unavailable; continuing family initialization: " + error); }
             harmony.PatchAll(typeof(Fs20ExtraWingStations.Saved));
             harmony.PatchAll(typeof(Fs20FlightController.ContinuousPitchDerivative));
             harmony.PatchAll(typeof(Fs20AiGuidance.GuidanceScope));

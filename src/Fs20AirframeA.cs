@@ -85,6 +85,7 @@ namespace Japensou.NuclearOption.VortexConventional
                 definition.unitPrefab = prefab;
                 ((Unit)aircraft).definition = definition;
                 network.PrefabHash = Hash;
+                Fs20ExtraWingStations.Install(encyclopedia, prefab.transform, "A");
                 Fs20PaintLods.Prepare(prefab);
                 prefab.SetActive(true);
                 definition.mass = prefab.GetComponentsInChildren<UnitPart>(true).Sum(p => p.GetMass());
