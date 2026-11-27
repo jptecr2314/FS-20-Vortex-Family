@@ -1,5 +1,5 @@
 {
-  "version": "0.7.3",
+  "version": "0.7.4",
   "folder": "VortexConventional",
   "dll": "VortexConventional.dll",
   "parent": false,
@@ -131,7 +131,8 @@
     "src/Fs20WingOutletCleanup.cs",
     "src/Fs20StoresMfd.cs",
     "src/Fs20WingtipOptions.cs",
-    "src/Fs20WingtipAlignment.cs"
+    "src/Fs20WingtipAlignment.cs",
+    "src/Multiplayer/Fs20AssemblyFingerprint.cs"
   ],
   "resources": [
     {

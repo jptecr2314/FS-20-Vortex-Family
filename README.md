@@ -1,6 +1,6 @@
-# FS-20 Vortex Family 0.7.3
+# FS-20 Vortex Family 0.7.4
 
-New in 0.7.3: A wingtip rails; compatible mod AAM choices and alignment on A/C rails with a 240 kg missile-plus-adapter limit; painted and reorganized C/T pylons with shared inner/middle choices; native-style stores MFDs with paired station rows and dim unselected markers; a family-selector initialization fix. See RELEASE_NOTES.md and QA.md for coverage and limits.
+New in 0.7.4: multiplayer startup handles assemblies loaded into memory; compatibility gating follows completed native authentication; disconnect/reconnect and native store replication were retested. The 0.7.3 wingtip, pylon and MFD features and all paints are retained. See RELEASE_NOTES.md and QA.md for coverage and matching-install requirements.
 
 Optional A/T/NA paints load asynchronously from `BuiltinPaints/` beside the DLL. Install the complete BepInEx folder; replacing only the DLL is insufficient. Three default prefab coats and their neutral basis stay resident. Optional coats and distant vertex-color meshes are shared and retained while native handles or renderers use them, then evicted without global garbage collection. Custom `.fs20paint` packs keep their existing format and location.
 

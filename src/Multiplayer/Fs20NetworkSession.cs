@@ -51,6 +51,8 @@ namespace Japensou.NuclearOption.VortexConventional
         private static MessageHandler serverHandler, clientHandler;
         private static byte[] serverDigest, clientDigest;
         private static bool serverOnline, serverStock;
+        private static readonly HashSet<INetworkPlayer> serverAdmissions = new HashSet<INetworkPlayer>();
+        private static readonly HashSet<INetworkPlayer> clientAdmissions = new HashSet<INetworkPlayer>();
         private static byte serverFlaps;
         private static string notice;
         internal static bool SessionActive => serverOnline || clientPolicy.Active;
@@ -69,7 +71,7 @@ namespace Japensou.NuclearOption.VortexConventional
             Reader<Fs20CompatibilityMessage>.Read = Fs20CompatibilitySerialization.Read;
             Fs20NetworkSurfaces.Install(harmony);
             foreach (var patch in new[] { typeof(MenuGate), typeof(ClientGate), typeof(HostGate), typeof(TransportClientGate), typeof(TransportServerGate),
-                typeof(ClientHello), typeof(Authenticate), typeof(ServerAdmission), typeof(ClientAdmission),
+                typeof(ClientHello), typeof(ServerAdmission), typeof(ClientAdmission),
                 typeof(ServerDisconnected), typeof(ClientDisconnected), typeof(ServerStopped), typeof(StockPolicy), typeof(FlapPolicy), typeof(FlightAuthority), typeof(HookForceAuthority), typeof(BayMassAuthority) })
                 harmony.PatchAll(patch);
             logger.LogInfo("FS-20 experimental multiplayer hooks ready. Modded sessions enabled: " + enabled.Value);
@@ -94,7 +96,7 @@ namespace Japensou.NuclearOption.VortexConventional
         {
             if (enabled == null || !enabled.Value) return Reject("FS-20 multiplayer is disabled. Enable matching modded sessions on the host and every client, or disable this mod to join an ordinary server.");
             try { Fs20NetworkSignature.Create();EnsureMessageType();return true; }
-            catch (Exception error) { return Reject("FS-20 network definitions are not ready: " + error.Message); }
+            catch (Exception error) { logger?.LogError("FS-20 multiplayer startup verification failed: " + error); return Reject("FS-20 multiplayer compatibility check failed: " + error.Message); }
         }
         internal static void DrawNotice()
         {
@@ -160,29 +162,63 @@ namespace Japensou.NuclearOption.VortexConventional
             { Reject(Fs20NetworkPolicy.Mismatch);player.Disconnect();return; }
             message.Phase = 2;player.Send(message, Channel.Reliable);
         }
-        private static async UniTask<AuthenticationResult> WaitForCompatibility(UniTask<AuthenticationResult> native, INetworkPlayer player, CancellationToken token)
+        private static async UniTask<bool> WaitForCompatibility(INetworkPlayer player, CancellationToken token)
         {
-            var result = await native;
-            if (!result.Success || player.IsHost) return result;
-            if (!serverOnline) return AuthenticationResult.CreateFail("The host has not enabled FS-20 multiplayer.");
+            // Mirage has already stored the game's real authentication data.
+            // Delaying AuthenticateAsync itself leaves that data null while the
+            // game's Steam-session monitor is running. Gate game admission here.
+            if (!player.IsAuthenticated || !serverOnline) return false;
+            if (player.IsHost) return true;
             var peer = Peer(player);peer.NativeResult(true);
             float deadline = Time.realtimeSinceStartup + Fs20NetworkPolicy.TimeoutMilliseconds / 1000f;
             while (player.IsConnected && !token.IsCancellationRequested && Time.realtimeSinceStartup < deadline)
             {
-                if (peer.Failure != null) return AuthenticationResult.CreateFail(peer.Failure);
+                if (!serverOnline || !peers.TryGetValue(player, out var current) || !ReferenceEquals(current, peer) || peer.Failure != null) return false;
                 if (peer.HelloReceived && !peer.OfferSent)
                 {
                     byte[] nonce = Guid.NewGuid().ToByteArray();
-                    if (!peer.Offer(nonce, serverStock, serverFlaps)) return AuthenticationResult.CreateFail("FS-20 host policy could not be offered.");
+                    if (!peer.Offer(nonce, serverStock, serverFlaps)) return false;
                     player.Send(new Fs20CompatibilityMessage { Protocol = Fs20NetworkPolicy.Protocol, Phase = 1, Digest = serverDigest, Nonce = nonce, Stock = serverStock, Flaps = serverFlaps }, Channel.Reliable);
                 }
-                if (peer.Accepted) return result;
-                if (peer.Failure != null) return AuthenticationResult.CreateFail(peer.Failure);
+                if (peer.Accepted) return true;
+                if (peer.Failure != null) return false;
                 if (!player.IsConnected) break;
                 await UniTask.Delay(100, ignoreTimeScale: true, cancellationToken: token);
             }
             peer.Reject("FS-20 handshake timed out. Install matching mods and enable the mod on both sides.");
-            return AuthenticationResult.CreateFail(peer.Failure);
+            return false;
+        }
+
+        private static async UniTask AdmitServer(NetworkManagerNuclearOption manager, INetworkPlayer player)
+        {
+            try
+            {
+                if (await WaitForCompatibility(player, CancellationToken.None))
+                    AccessTools.Method(typeof(NetworkManagerNuclearOption), "OnServerAuthenticated").Invoke(manager, new object[] { player });
+                else { Reject(Peer(player).Failure ?? "FS-20 session compatibility was not confirmed.");player.Disconnect(); }
+            }
+            catch (Exception error) { logger?.LogError("FS-20 server admission failed: " + error);player.Disconnect(); }
+            finally { serverAdmissions.Remove(player); }
+        }
+
+        private static async UniTask AdmitClient(NetworkManagerNuclearOption manager, INetworkPlayer player)
+        {
+            var digest = clientDigest;
+            try
+            {
+                float deadline = Time.realtimeSinceStartup + Fs20NetworkPolicy.TimeoutMilliseconds / 1000f;
+                while (player.IsConnected && player.IsAuthenticated && ReferenceEquals(digest, clientDigest) && Time.realtimeSinceStartup < deadline)
+                {
+                    if (clientPolicy.OfferReceived && clientPolicy.Authenticate(true))
+                    {
+                        AccessTools.Method(typeof(NetworkManagerNuclearOption), "OnClientAuthenticated").Invoke(manager, new object[] { player });return;
+                    }
+                    await UniTask.Delay(100, ignoreTimeScale: true);
+                }
+                Reject("The host did not confirm this FS-20 build. Use matching mod installations.");player.Disconnect();
+            }
+            catch (Exception error) { logger?.LogError("FS-20 client admission failed: " + error);player.Disconnect(); }
+            finally { clientAdmissions.Remove(player); }
         }
 
         [HarmonyPatch(typeof(MainMenu), "SelectMultiplayer")]
@@ -239,28 +275,26 @@ namespace Japensou.NuclearOption.VortexConventional
                 return true;
             }
         }
-        [HarmonyPatch(typeof(NetworkAuthenticatorNuclearOption), "AuthenticateAsync")]
-        private static class Authenticate
-        {
-            private static void Postfix(INetworkPlayer __0, CancellationToken __2, ref UniTask<AuthenticationResult> __result) =>
-                __result = WaitForCompatibility(__result, __0, __2);
-        }
         [HarmonyPatch(typeof(NetworkManagerNuclearOption), "OnServerAuthenticated")]
         private static class ServerAdmission
         {
-            private static bool Prefix(INetworkPlayer __0)
+            private static bool Prefix(NetworkManagerNuclearOption __instance, INetworkPlayer __0)
             {
                 if (__0.IsHost || (serverOnline && peers.TryGetValue(__0, out var peer) && peer.Accepted)) return true;
-                __0.Disconnect();return false;
+                if (!serverOnline || !__0.IsAuthenticated || Peer(__0).Failure != null) { __0.Disconnect();return false; }
+                if (serverAdmissions.Add(__0)) AdmitServer(__instance, __0).Forget();
+                return false;
             }
         }
         [HarmonyPatch(typeof(NetworkManagerNuclearOption), "OnClientAuthenticated")]
         private static class ClientAdmission
         {
-            private static bool Prefix(INetworkPlayer __0)
+            private static bool Prefix(NetworkManagerNuclearOption __instance, INetworkPlayer __0)
             {
-                if (__0.IsHost || clientPolicy.Authenticate(true)) return true;
-                Reject("The host did not authorize this FS-20 build. Join a matching, explicitly enabled modded session.");__0.Disconnect();return false;
+                if (__0.IsHost || clientPolicy.Active) return true;
+                if (!__0.IsAuthenticated || clientDigest == null) { __0.Disconnect();return false; }
+                if (clientAdmissions.Add(__0)) AdmitClient(__instance, __0).Forget();
+                return false;
             }
         }
         [HarmonyPatch(typeof(NetworkAuthenticatorNuclearOption), "OnServerDisconnected")]

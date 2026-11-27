@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using BepInEx;
 using BepInEx.Bootstrap;
 using HarmonyLib;
 using Mirage;
@@ -19,18 +20,20 @@ namespace Japensou.NuclearOption.VortexConventional
                 !Encyclopedia.Lookup.ContainsKey("JP_FS20_CTOL") || !Encyclopedia.Lookup.ContainsKey(Fs20AirframeA.Key) || !Encyclopedia.Lookup.ContainsKey(Fs20TAirframe.Key) || !Encyclopedia.Lookup.ContainsKey(Fs20NAAirframe.Key) ||
                 !Encyclopedia.WeaponLookup.ContainsKey(Fs20AugerMount.Key))
                 throw new InvalidOperationException("FS-20 aircraft and weapon definitions are not ready.");
-            var text = new StringBuilder("FS20/network/2/0.7.3/A B C T NA\n");
+            var text = new StringBuilder("FS20/network/2/0.7.4/A B C T NA\n");
             text.Append("paint-catalog:").Append(Fs20PreparedLiveries.Signature()).Append("\n");
             using (var hash = SHA256.Create())
             {
                 foreach (var plugin in Chainloader.PluginInfos.OrderBy(p => p.Key, StringComparer.Ordinal))
                 {
-                    string file = plugin.Value.Instance.GetType().Assembly.Location;
+                    if (plugin.Value.Instance == null) throw new InvalidOperationException("FS-20 cannot inspect loaded plugin " + plugin.Key + ".");
+                    var assembly = plugin.Value.Instance.GetType().Assembly;
                     text.Append(plugin.Key).Append(':').Append(plugin.Value.Metadata.Version).Append(':');
-                    using (var stream = File.OpenRead(file)) text.Append(Convert.ToBase64String(hash.ComputeHash(stream)));
+                    text.Append(Fs20AssemblyFingerprint.Digest(assembly, plugin.Value.Location, "plugin " + plugin.Key, hash));
                     text.Append('\n');
                 }
-                using (var stream = File.OpenRead(typeof(Aircraft).Assembly.Location)) text.Append(Convert.ToBase64String(hash.ComputeHash(stream))).Append('\n');
+                var game = typeof(Aircraft).Assembly;
+                text.Append(Fs20AssemblyFingerprint.Digest(game, Path.Combine(Paths.ManagedPath, game.GetName().Name + ".dll"), "game assembly " + game.GetName().Name, hash)).Append('\n');
                 for (int i = 0; i < encyclopedia.IndexLookup.Count; i++)
                 {
                     var definition = encyclopedia.IndexLookup[i];

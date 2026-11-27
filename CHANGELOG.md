@@ -1,3 +1,11 @@
+# 0.7.4
+
+- Fixes the multiplayer lobby error caused by an empty Assembly.Location when BepInEx loads a DLL into memory. Compatibility checks use registered loader paths or the native managed game path, validate the assembly identity and retain full-file SHA256 checks.
+- Leaves the native authentication task and Steam/password/build checks intact. After native authentication completes, game admission waits for the matching FS-20 handshake. This fixes the race where the game's Steam-session monitor could read authentication data before Mirage stored it.
+- Adds explicit startup diagnostics and full exception logging. Missing or incorrect mod files remain rejected rather than silently skipped.
+- Guards VTOL balance refresh during native aircraft/payload teardown, preventing an exception when the owning aircraft has already been destroyed.
+
+
 # 0.7.3 - 2026-11-25
 
 - A gains wingtip missile rails with relocated NAV lights. A/C rails now offer compatible single-round air-to-air missiles from installed weapon mods, filter out ship/ground-only launchers and duplicate visible choices, and align the round with the rail on attachment.

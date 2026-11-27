@@ -103,21 +103,21 @@ namespace FS20MultiplayerBench
             Set(hello,"Protocol",P("Fs20NetworkPolicy").GetField("Protocol",All).GetRawConstantValue());Set(hello,"Phase",(byte)0);
             Set(hello,"Digest",clientDigest);Set(hello,"Nonce",new byte[16]);
             clientWire.SendReliable(Pack(hello.GetType(),hello),0,Pack(hello.GetType(),hello).Length);
-            var completion=new UniTaskCompletionSource<AuthenticationResult>();
-            var pending=(UniTask<AuthenticationResult>)Call("Fs20Multiplayer","WaitForCompatibility",completion.Task,serverPeer,CancellationToken.None);
-            Check(pending.Status==UniTaskStatus.Pending,"Compatibility must await native authentication");
+            var before=(UniTask<bool>)Call("Fs20Multiplayer","WaitForCompatibility",serverPeer,CancellationToken.None);
+            Check(before.Status.IsCompleted()&&!before.GetAwaiter().GetResult(),"Compatibility must not admit an unauthenticated peer");
             var peer=Call("Fs20Multiplayer","Peer",serverPeer);
             Check(!(bool)peer.GetType().GetProperty("OfferSent",All).GetValue(peer),"No host policy before native result");
-            var native=nativeSuccess?AuthenticationResult.CreateSuccess("Fixture only"):AuthenticationResult.CreateFail("Fixture native failure");
-            completion.TrySetResult(native);
+            if(nativeSuccess){serverPeer.SetAuthentication(new PlayerAuthentication(null,"Fixture only"),false);clientPeer.SetAuthentication(new PlayerAuthentication(null,"Fixture only"),false);}
+            var pending=(UniTask<bool>)Call("Fs20Multiplayer","WaitForCompatibility",serverPeer,CancellationToken.None);
             Check(pending.Status.IsCompleted(),"Matching/mismatched handshake should complete through native handlers");
             var result=pending.GetAwaiter().GetResult();
-            Check(result.Success==(matching&&nativeSuccess&&!tamperAck),"Handshake admission result: "+result.Reason);
+            Check(result==(matching&&nativeSuccess&&!tamperAck),"Handshake admission result");
             var admission=P("Fs20Multiplayer+ServerAdmission").GetMethod("Prefix",All);
-            Check((bool)admission.Invoke(null,new object[]{serverPeer})==(matching&&nativeSuccess&&!tamperAck),"Server admission requires both checks");
+            Check((bool)admission.Invoke(null,new object[]{null,serverPeer})==(matching&&nativeSuccess&&!tamperAck),"Server admission requires both checks");
             if(matching&&nativeSuccess&&!tamperAck)
             {
-                Check((bool)P("Fs20Multiplayer+ClientAdmission").GetMethod("Prefix",All).Invoke(null,new object[]{clientPeer}),"Client requires host offer");
+                Check((bool)policy.GetType().GetMethod("Authenticate",All).Invoke(policy,new object[]{clientPeer.IsAuthenticated}),"Client activates only after real metadata and offer");
+                Check((bool)P("Fs20Multiplayer+ClientAdmission").GetMethod("Prefix",All).Invoke(null,new object[]{null,clientPeer}),"Client requires host offer");
                 Check((bool)policy.GetType().GetProperty("Active",All).GetValue(policy),"Client policy activated");
                 Check((bool)policy.GetType().GetProperty("SharedStock",All).GetValue(policy),"Host stock policy replicated");
                 Check((byte)policy.GetType().GetProperty("FlapMode",All).GetValue(policy)==2,"Host flap policy replicated");

@@ -1,3 +1,27 @@
+# FS-20 Vortex Family 0.7.4 validation
+
+## Current candidate
+
+DLL SHA256: `a675b8d1a2e13b50a48dc189cb763d0197c6897ec53c91e6cc2211479f06ff14`. Source starts at the public 0.7.3 commit. The compiled scope comparison preserves 1,777 methods outside admission, all 17 embedded resources, flight/weapon tuning and all 13 external paint bundles. Changes are confined to assembly fingerprint resolution, admission/diagnostics, version metadata and a teardown null guard.
+
+## Executed checks
+
+- 12 assembly-loading/file-hash regression checks, using actual byte-loaded and disk-loaded .NET assemblies: the previous failure is reproduced, valid file SHA256 is retained, changed bytes mismatch, missing/wrong files reject, and installation path names do not enter the signature.
+- 124 compatibility-policy checks, including two TCP loopback exchanges, malformed packets, mismatched digests/protocol, nonces, native-authentication failure and host-policy enforcement; 70 bounded surface-packet checks. These are standalone protocol fixtures, not Steam tests.
+- 185 Unity/native-Mirage checks and 11 in-memory wire packets; native game references, data fixtures and explicit authentication fixture results. Matching, mismatch, tampered ACK, native failure, repeated sessions, owner-only controls, C/T/NA presentation, damage/index contracts, bounded surface handling and retained compressed paints were checked. This does not simulate a successful Steam login.
+- 23 static native hook contracts: the native authentication task is not patched/replaced; successful native metadata precedes game admission; identity/password/build checks and native definition indices are untouched. Static checks alone are not runtime proof.
+- Real native game processes: hidden password-protected anonymous Steam server plus a legitimate client, on one PC. Final server/client receipts contain 37 / 41 assertions. Both execute the complete production signature with an actual byte-loaded temporary plugin and confirm it remains included in the digest; changing its file bytes changes the digest. Temporary registration is restored before the real handshake.
+- The native client receives A/C/T/NA, verifies remote authority and selected paint texture references, observes eight AAM2_single missiles on A/C rails and C/T middle stations, and confirms native fire and rearm ammo states. Server and client use native weapon APIs/RPCs. A native T wing-section detachment reaches the client. The client then disconnects through native StopAsync, verifies policy reset, rejoins the same server and receives the variants again.
+- Final native logs contain neither the empty-path error nor the observed authentication-data/VTOL-teardown null references. Fixtures restore their private plugins/mission and preserve the installed DLL. Other tasks' processes are not stopped.
+
+Initial fixture attempts that did not complete, including a reused Unity component identity and a child-hierarchy store lookup invalidated by native reparenting, are excluded from these results. Final checks use a unique byte-loaded plugin type and WeaponManager hardpoint indices. Earlier 0.7.4 candidate results are not counted as current-binary acceptance.
+
+## Delivery and limits
+
+The package must pass archive CRC/hash checks, an isolated install preserving configuration/unrelated files and an identical source-archive rebuild before delivery. This release has not been published or installed as part of preparation. Full real-flight combat, every third-party weapon, asymmetric-loss/Internet latency and a two-PC Steam session remain untested. Matching installations are required; the original B remains native and was not a new variant-spawn case in this delta.
+
+## Historical 0.7.3 evidence
+
 # FS-20 Vortex Family 0.7.3 validation
 
 The release source starts at the public 0.7.2 commit and includes the cumulative locally installed station, selector, MFD and wingtip revision. Publication changes only version metadata and the multiplayer build signature from that tested revision. A method/field/resource comparison checks that boundary; the source archive must rebuild an identical DLL. Packaging checks ZIP CRCs, dependencies, all paint bundle hashes and an isolated install. Release assets are downloaded anonymously and hashed after publication.

@@ -84,6 +84,7 @@ namespace Japensou.NuclearOption.VortexConventional
 
         private static void RefreshVtolBalance(Aircraft aircraft)
         {
+            if (aircraft == null) return; // Payload removal also runs during native scene teardown.
             var swivel = aircraft.GetComponent<SwivelDuctSystem>();
             if (swivel == null) return;
             foreach (var fan in (Array)Fans.GetValue(swivel))
